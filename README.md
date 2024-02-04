@@ -1,5 +1,5 @@
 <!-- ![Example figure](https://raw.githubusercontent.com/ricktu288/ray-optics/master/img/1.svg) -->
-![Example figure](https://raw.githubusercontent.com/ChenZhu-Xie/ray_optics__xcz/master/img/cover.png)
+![Example figure](https://raw.githubusercontent.com/ChenZhu-Xie/ray_optics__xcz/master/img/cover.png "The cover of『Xcz's doctor thesis』")
 
 # Ray Optics Simulation
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6386611.svg)](https://doi.org/10.5281/zenodo.6386611)
