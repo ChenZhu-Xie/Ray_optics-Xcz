@@ -1,6 +1,7 @@
-<!-- ![Example figure](https://raw.githubusercontent.com/ricktu288/ray-optics/master/img/1.svg) -->
+<!-- ![Example figure](https://raw.githubusercontent.com/ricktu288/ray-optics/master/img/1.svg "Example figure") -->
+![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/1.svg "Example figure")
 <!-- ![Example figure](https://raw.githubusercontent.com/ChenZhu-Xie/ray_optics__xcz/master/img/cover.png "多重·辗转相除法 自动运行在「杜瓦瓶」=「纯反射∧无吸收の含缺口の黑体」内")  -->
-![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/cover.png "多重·辗转相除法 自动运行在「杜瓦瓶」=「纯反射∧无吸收の含缺口の黑体」内")
+<!-- ![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/cover.png "多重·辗转相除法 自动运行在「杜瓦瓶」=「纯反射∧无吸收の含缺口の黑体」内") -->
 
 
 # Ray Optics Simulation
