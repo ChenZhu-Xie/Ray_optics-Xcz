@@ -28,6 +28,14 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
 - [Documentation](https://github.com/ricktu288/ray-optics/wiki)
 - [About](https://phydemo.app/ray-optics/about)
 
+# Related repos
+* This simulator 👉 [2D ray-optics simulation](https://github.com/ChenZhu-Xie/ray-optics)
+    1. Utilized by dive ⊶ 👉 [application of the 2nd book](https://github.com/ChenZhu-Xie/geometric_optics_2_discrete_mathematics)
+    2. Utilized by .ppt ⊶ 👉 [Ray & Wave Optics simulation](https://github.com/ChenZhu-Xie/ray_optics__xcz/master/A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx)
+        * ![fig](https://github.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/wave_optics.png "Wave Optics in PDEs")
+    3. Links to model ✉ 👉 [NLAST-vector model (Private)](https://github.com/ChenZhu-Xie/NLAST_private)
+        * Contains paper ⊋ 👉 [Berry-Mcleod paper (Private)](https://github.com/ChenZhu-Xie/Berry_Mcleod_paper__private)
+
 # Contributing
 
 Contributions are welcome. Possible contributions include but not limited to the followings:
