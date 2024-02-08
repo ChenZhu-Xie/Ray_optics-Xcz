@@ -37,8 +37,9 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
     <!-- 2. 被幻灯片使用 ⊶ 👉 [射线 & 波动光学 模拟](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx) -->
     2. 被幻灯片使用 ⊶ 👉「A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx」
         * ![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/wave_optics.png "波动光学 in 偏微分方程")
-    3. 链接到模型 ✉ 👉 [NLAST-vector 模型 (私有)](https://gitee.com/ChenZhu-Xie/NLAST_private)
-        * 包含文章 ⊋ 👉 [Berry-Mcleod 文章 (私有)](https://gitee.com/ChenZhu-Xie/Berry_Mcleod_paper__private)
+        * 链接到模型 ✉ 👉 [NLAST-vector 模型 (私有)](https://gitee.com/ChenZhu-Xie/NLAST_private)
+            * 包含文章 ⊋ 👉 [Berry-Mcleod 文章 (私有)](https://gitee.com/ChenZhu-Xie/Berry_Mcleod_paper__private)
+            * 『波动光学』in『偏微分方程 (PDEs)』
 
 # Contributing
 
