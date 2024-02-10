@@ -30,7 +30,7 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
 
 # Related contents
 * This simulator 👉 [2D ray-optics simulation](https://github.com/ChenZhu-Xie/ray-optics)
-    1. Utilized by dive ⊶ 👉 [Application of the 2nd book](https://github.com/ChenZhu-Xie/geometric_optics_2_discrete_mathematics)
+    1. Utilized by dive ⊶ 👉 [instance of the 2nd book:『ray optics』runs in an『integrating sphere』](https://github.com/ChenZhu-Xie/geometric_optics_2_discrete_mathematics)
     <!-- 2. Utilized by .ppt ⊶ 👉 [Ray & Wave Optics simulation](https://github.com/ChenZhu-Xie/ray_optics__xcz/master/A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx) -->
     2. Utilized by .ppt ⊶ 👉「A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx」
         * ![fig](https://github.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/wave_optics.png "Wave Optics in PDEs")

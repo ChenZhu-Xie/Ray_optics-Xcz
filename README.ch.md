@@ -33,7 +33,7 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
 
 # 相关内容
 * 该模拟器 👉 [2D 射線追蹤 模拟](https://gitee.com/ChenZhu-Xie/ray_optics__xcz)
-    1. 被探索过程使用 ⊶ 👉 [第二本书 的应用](https://gitee.com/ChenZhu-Xie/geometric_optics_2_discrete_mathematics)
+    1. 被探索过程使用 ⊶ 👉 [第二本书 の 实例：运行在『积分球』中的『几何光学』](https://gitee.com/ChenZhu-Xie/geometric_optics_2_discrete_mathematics)
     <!-- 2. 被幻灯片使用 ⊶ 👉 [射线 & 波动光学 模拟](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx) -->
     2. 被幻灯片使用 ⊶ 👉「A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx」
         * ![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/wave_optics.png "波动光学 in 偏微分方程")
