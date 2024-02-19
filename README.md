@@ -37,6 +37,7 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
         * Links to model ✉ 👉 [NLAST-vector model (Private)](https://github.com/ChenZhu-Xie/NLAST_private)
             * Contains paper ⊋ 👉 [Berry-Mcleod paper (Private)](https://github.com/ChenZhu-Xie/Berry_Mcleod_paper__private)
             * 『Wave Optics』in『Partial Differential Equations (PDEs)』
+* 中文「自述文档」㊥ 👉 [2D ray-optics simulation](https://gitee.com/ChenZhu-Xie/ray_optics__xcz)
 
 # Contributing
 
