@@ -40,7 +40,7 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
         * 链接到模型 ✉ 👉 [NLAST-vector 模型 (私有)](https://gitee.com/ChenZhu-Xie/NLAST_private)
             * 包含文章 ⊋ 👉 [Berry-Mcleod 文章 (私有)](https://gitee.com/ChenZhu-Xie/Berry_Mcleod_paper__private)
             * 『波动光学』in『偏微分方程 (PDEs)』
-* English「README」ⓔ 👉 [2D 射線追蹤 模拟](https://gitee.com/ChenZhu-Xie/ray_optics__xcz)
+* English「README」ⓔ 👉 [2D ray-optics simulation](https://github.com/ChenZhu-Xie/ray_optics__xcz)
 
 # Contributing
 
