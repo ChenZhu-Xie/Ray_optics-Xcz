@@ -36,7 +36,8 @@ A web app for creating and simulating 2D geometric optical scenes. Our goal is t
     1. 被探索过程使用 ⊶ 👉 [第二本书 の 实例：运行在『积分球』中的『几何光学』](https://gitee.com/ChenZhu-Xie/geometric_optics_2_discrete_mathematics)
     <!-- 2. 被幻灯片使用 ⊶ 👉 [射线 & 波动光学 模拟](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx) -->
     2. 被幻灯片使用 ⊶ 👉「A_guided_tour_to_Ray_&_Wave_Optics_Simulation.pptx」
-        * ![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/wave_optics.png "波动光学 in 偏微分方程")
+        <!-- * ![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/wave_optics.png "波动光学 in 偏微分方程") -->
+        * ![fig](https://gitee.com/ChenZhu-Xie/ray_optics__xcz/raw/master/img/vector_linear_crystal_optics_1.png "波动光学 in 偏微分方程")
         * 链接到模型 ✉ 👉 [NLAST-vector 模型 (私有)](https://gitee.com/ChenZhu-Xie/NLAST_private)
             * 包含文章 ⊋ 👉 [Berry-Mcleod 文章 (私有)](https://gitee.com/ChenZhu-Xie/Berry_Mcleod_paper__private)
             * 『波动光学』in『偏微分方程 (PDEs)』
