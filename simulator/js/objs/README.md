@@ -23,11 +23,10 @@
 | Blocker -> Line Blocker | `blackline` |
 | Blocker -> Circle Blocker | `blackcircle` |
 | Blocker -> Aperture | `aperture` |
+| Blocker -> Diffraction Grating | `diffractiongrating` |
 | Other -> Ruler | `ruler` |
 | Other -> Protractor | `protractor` |
 | Other -> Detector | `power` |
 | Other -> Text | `text` |
 | Other -> Line / Arrow | `line` |
 | Other -> Drawing | `drawing` |
-
-See [here](https://github.com/ricktu288/ray-optics/wiki/The-structure-of-a-tool-(obj)) for the structure of a tool.

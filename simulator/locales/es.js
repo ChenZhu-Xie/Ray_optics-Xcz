@@ -105,6 +105,10 @@ locales["es"] = {
   "toolname_blackcircle": {
     "message": "Bloqueador circular"
   },
+  "toolname_diffractiongrating": {
+    "incomplete": true,
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "toolname_ruler": {
     "message": "Regla"
   },
@@ -237,6 +241,10 @@ locales["es"] = {
   "tool_blackcircle": {
     "message": "Bloqueador circular"
   },
+  "tool_diffractiongrating": {
+    "incomplete": true,
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "tool_ruler": {
     "message": "Regla"
   },
@@ -356,6 +364,18 @@ locales["es"] = {
   },
   "emissionangle": {
     "message": "Angulo de emisión (°)"
+  },
+  "mirrored": {
+    "incomplete": true,
+    "message": "Mirrored"
+  },
+  "lines/mm": {
+    "incomplete": true,
+    "message": "Lines/mm"
+  },
+  "slit_ratio": {
+    "incomplete": true,
+    "message": "Slit width / line spacing"
   },
   "symmetric": {
     "message": "Simétrico"
@@ -488,6 +508,14 @@ locales["es"] = {
   },
   "beam_warning": {
     "message": "⚠️ Detección de imagen puede no funcionar con rayos divergentes/ aleatorios"
+  },
+  "image_detection_warning": {
+    "incomplete": true,
+    "message": "⚠️ This tool does not support image detection."
+  },
+  "non_color_mode_warning": {
+    "incomplete": true,
+    "message": "⚠️ This tool only works when \"Simulate Color\" is on."
   },
   "brightness_note_popover": {
     "message": "<p>Solo es efectivo si la 'Densidad de rayos' es suficientemente alta.</p><p>Para controlar el número de rayos emitidos, por favor ajustar el deslizante global 'Densidad de rayos'.</p>"
@@ -639,6 +667,10 @@ locales["es"] = {
   "tool_blackcircle_popover": {
     "message": "Un bloqueador de luz circular que absorbe los rayos incidentes. (Arrastre o clique para crear.)"
   },
+  "tool_diffractiongrating_popover": {
+    "incomplete": true,
+    "message": "A diffraction grating that splits light at an angle depending on wavelength. Warning: The intensities of diffracted rays may not be accurate. (Drag or click to create.)"
+  },
   "tool_ruler_popover": {
     "message": "Una regla desde un punto cero hasta otro punto. La escala está en pixels. (Arrastre o clique para crear.)"
   },
@@ -691,7 +723,8 @@ locales["es"] = {
     "message": "Zoom de la vista con porcentaje."
   },
   "help_popover": {
-    "message": "<b>Arrastre restringido</b><p>Cuando arrastre un objeto, presione Shift para limitar a horizontal/vertical; presione Ctrl para clonar. Cuando cree un objeto lineal o arrastre sus puntos extremales, presione Shift para bloquear el ángulo o fijarlo a 0°, 45°, 90°; presione Ctrl para rotar/escalar sobre su centro.</p><b>Agrupar, rotar y escalar objetos</b><p> Presione Ctrl, clique múltiples puntos de control (por ejemplo, puntos extremales), después clique en un espacio vacío para agrupar estos puntos y crear un punto de manejo. Arrastre el punto de manejo (o presione las flechas) para mover el grupo; Shift+arrastrar para limitar a horizontal/vertical; Ctrl+arrastrar para rotar, Ctrl+Shift+arrastrar para escalar. Arrastre el \"+\" para establecer un centro de rotación/ escala. Clique el punto de manejo y presione Ctrl+D para duplicar el grupo; Presione Supr para desagrupar. </p><b>Editar las coordenadas directamente</b><p>Doble-click o click derecho sobre un punto de control (por ejemplo, un punto extremal) del objeto, edite las coordenadas (x,y) en píxeles, después presione Enter.</p><b>Atajos de teclado</b><p>Cuando un objeto está seleccionado (al clicarlo), presione las flechas para moverlo; Ctrl+D para duplicarlo o Supr para suprimirlo.</p>"
+    "incomplete": true,
+    "message": "<b>Arrastre restringido</b><p>Cuando arrastre un objeto, presione Shift para limitar a horizontal/vertical; presione Ctrl para clonar. Cuando cree un objeto lineal o arrastre sus puntos extremales, presione Shift para bloquear el ángulo o fijarlo a 0°, 45°, 90°; presione Ctrl para rotar/escalar sobre su centro.</p><b>Agrupar, rotar y escalar objetos</b><p> Presione Ctrl, clique múltiples puntos de control (por ejemplo, puntos extremales), después clique en un espacio vacío para agrupar estos puntos y crear un punto de manejo. Arrastre el punto de manejo (o presione las flechas) para mover el grupo; Shift+arrastrar para limitar a horizontal/vertical; Ctrl+arrastrar para rotar, Ctrl+Shift+arrastrar para escalar. Arrastre el \"+\" para establecer un centro de rotación/ escala. Clique el punto de manejo y presione Ctrl+D para duplicar el grupo; Presione Supr para desagrupar. </p><b>Editar las coordenadas directamente</b><p>Doble-click o click derecho sobre un punto de control (por ejemplo, un punto extremal) del objeto, edite las coordenadas (x,y) en píxeles, después presione Enter.</p><b>Atajos de teclado</b><p>Cuando un objeto está seleccionado (al clicarlo), presione las flechas para moverlo; Ctrl+D para duplicarlo o Supr para suprimirlo.</p><b>Contact Us</b><p>The suggested way is to go to <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/discussions\">Discussions</a> or <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/issues\">Issues</a> on GitHub. If you do not use GitHub, you can also email us at <a href=\"mailto:ray-optics@phydemo.app\">ray-optics@phydemo.app</a> (please use English). </p><p>Direct contributions are also welcome (see <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/blob/master/CONTRIBUTING.md\">the contribution guide</a>).</p>"
   },
   "show_help_popups": {
     "message": "Mostrar ventanas de ayuda"
@@ -728,5 +761,9 @@ locales["es"] = {
   },
   "force_stopped": {
     "message": "Fuerza detenida."
+  },
+  "mouse_coordinates": {
+    "incomplete": true,
+    "message": "Mouse coordinates: "
   }
 }

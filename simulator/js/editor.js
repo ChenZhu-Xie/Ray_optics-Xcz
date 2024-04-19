@@ -1,10 +1,10 @@
-var mouse; // Position of the mouse
-var mouse_lastmousedown; // Position of the mouse the last time when the user clicked
+var mousePos; // Position of the mouse
+var mousePos_lastmousedown; // Position of the mouse the last time when the user clicked
 var isConstructing = false; // The user is constructing a new object
 var constructionPoint; // The point where the user starts the construction
 var draggingObj = -1; // Object index in drag (-1 for no drag, -3 for the entire picture, -4 for observer)
 var positioningObj = -1; // Object index in entering the coordinates (-1 for none, -4 for observer)
-var draggingPart = {}; // The part in drag and some mouse position data
+var dragContext = {}; // The part in drag and some mouse position data
 var selectedObj = -1; // The index of the selected object (-1 for none)
 var mouseObj = -1;
 var mousePart = {};
@@ -14,90 +14,14 @@ var undoIndex = 0; // Current undo position
 var undoLimit = 20; // Limit of undo
 var undoUBound = 0; // Current upper bound of undo data
 var undoLBound = 0; // Current lower bound of undo data
-var snapToDirection_lockLimit_squared = 900; // The square of the legnth needed to snap to a direction when dragging an object with snap-to-direction
-var clickExtent_line = 10;
-var clickExtent_point = 10;
-var clickExtent_point_construct = 10;
-var touchscreenExtentRatio = 2;
-
-var gridSize = 20; // Size of the grid
-var origin = { x: 0, y: 0 }; // Origin of the grid
 
 var pendingControlPointSelection = false;
 var pendingControlPoints;
 
 function getMouseStyle(obj, style, screen) {
   if (obj == mouseObj && mouseObj)
-    return (screen && colorMode) ? 'rgb(0,100,100)' : 'rgb(0,255,255)'
+    return (screen && scene.colorMode) ? 'rgb(0,100,100)' : 'rgb(0,255,255)'
   return style;
-}
-
-function getClickExtent(isPoint, isConstruct) {
-  if (isPoint) {
-    if (isConstruct) {
-      var clickExtent = clickExtent_point_construct / scale;
-    } else {
-      var clickExtent = clickExtent_point / scale;
-    }
-  } else {
-    var clickExtent = clickExtent_line / scale;
-  }
-  if (lastDeviceIsTouch) {
-    clickExtent *= touchscreenExtentRatio;
-  }
-  return clickExtent;
-}
-
-function mouseOnPoint(mouse, point) {
-  return graphs.length_squared(mouse, point) < getClickExtent(true) * getClickExtent(true);
-}
-
-function mouseOnPoint_construct(mouse, point) {
-  return graphs.length_squared(mouse, point) < getClickExtent(true, true) * getClickExtent(true, true);
-}
-
-function mouseOnSegment(mouse, segment) {
-  var d_per = Math.pow((mouse.x - segment.p1.x) * (segment.p1.y - segment.p2.y) + (mouse.y - segment.p1.y) * (segment.p2.x - segment.p1.x), 2) / ((segment.p1.y - segment.p2.y) * (segment.p1.y - segment.p2.y) + (segment.p2.x - segment.p1.x) * (segment.p2.x - segment.p1.x)); // Similar to the distance between the mouse and the line
-  var d_par = (segment.p2.x - segment.p1.x) * (mouse.x - segment.p1.x) + (segment.p2.y - segment.p1.y) * (mouse.y - segment.p1.y); // Similar to the projected point of the mouse on the line
-  return d_per < getClickExtent() * getClickExtent() && d_par >= 0 && d_par <= graphs.length_segment_squared(segment);
-}
-
-function mouseOnLine(mouse, line) {
-  var d_per = Math.pow((mouse.x - line.p1.x) * (line.p1.y - line.p2.y) + (mouse.y - line.p1.y) * (line.p2.x - line.p1.x), 2) / ((line.p1.y - line.p2.y) * (line.p1.y - line.p2.y) + (line.p2.x - line.p1.x) * (line.p2.x - line.p1.x)); // Similar to the distance between the mouse and the line
-  return d_per < getClickExtent() * getClickExtent();
-}
-
-// Snap the mouse position to the direction nearest to the given directions
-function snapToDirection(mouse, basePoint, directions, snapData) {
-  var x = mouse.x - basePoint.x;
-  var y = mouse.y - basePoint.y;
-
-  if (snapData && snapData.locked) {
-    // The snap has been locked
-    var k = (directions[snapData.i0].x * x + directions[snapData.i0].y * y) / (directions[snapData.i0].x * directions[snapData.i0].x + directions[snapData.i0].y * directions[snapData.i0].y);
-    return graphs.point(basePoint.x + k * directions[snapData.i0].x, basePoint.y + k * directions[snapData.i0].y);
-  }
-  else {
-    var i0;
-    var d_sq;
-    var d0_sq = Infinity;
-    for (var i = 0; i < directions.length; i++) {
-      d_sq = (directions[i].y * x - directions[i].x * y) * (directions[i].y * x - directions[i].x * y) / (directions[i].x * directions[i].x + directions[i].y * directions[i].y);
-      if (d_sq < d0_sq) {
-        d0_sq = d_sq;
-        i0 = i;
-      }
-    }
-
-    if (snapData && x * x + y * y > snapToDirection_lockLimit_squared) {
-      // lock the snap
-      snapData.locked = true;
-      snapData.i0 = i0;
-    }
-
-    var k = (directions[i0].x * x + directions[i0].y * y) / (directions[i0].x * directions[i0].x + directions[i0].y * directions[i0].y);
-    return graphs.point(basePoint.x + k * directions[i0].x, basePoint.y + k * directions[i0].y);
-  }
 }
 
 function canvas_onmousedown(e) {
@@ -106,8 +30,8 @@ function canvas_onmousedown(e) {
   } else {
     var et = e;
   }
-  var mouse_nogrid = graphs.point((et.pageX - e.target.offsetLeft - origin.x) / scale, (et.pageY - e.target.offsetTop - origin.y) / scale); // The real position of the mouse
-  mouse_lastmousedown = mouse_nogrid;
+  var mousePos_nogrid = geometry.point((et.pageX - e.target.offsetLeft - scene.origin.x) / scene.scale, (et.pageY - e.target.offsetTop - scene.origin.y) / scene.scale); // The real position of the mouse
+  mousePos_lastmousedown = mousePos_nogrid;
   if (positioningObj != -1) {
     confirmPositioning(e.ctrlKey, e.shiftKey);
     if (!(e.which && e.which == 3)) {
@@ -120,12 +44,12 @@ function canvas_onmousedown(e) {
     return;
   }
 
-  if (document.getElementById('grid').checked) {
-    mouse = graphs.point(Math.round(((et.pageX - e.target.offsetLeft - origin.x) / scale) / gridSize) * gridSize, Math.round(((et.pageY - e.target.offsetTop - origin.y) / scale) / gridSize) * gridSize);
+  if (scene.grid) {
+    mousePos = geometry.point(Math.round(((et.pageX - e.target.offsetLeft - scene.origin.x) / scene.scale) / scene.gridSize) * scene.gridSize, Math.round(((et.pageY - e.target.offsetTop - scene.origin.y) / scene.scale) / scene.gridSize) * scene.gridSize);
 
   }
   else {
-    mouse = mouse_nogrid;
+    mousePos = mousePos_nogrid;
   }
 
 
@@ -133,43 +57,55 @@ function canvas_onmousedown(e) {
     if ((e.which && e.which == 1) || (e.changedTouches)) {
       // Only react for left click
       // If an obj is being created, pass the action to it
-      objTypes[objs[objs.length - 1].type].c_mousedown(objs[objs.length - 1], mouse, e.ctrlKey, e.shiftKey);
-      draw(!(objTypes[objs[objs.length - 1].type].shoot || objTypes[objs[objs.length - 1].type].rayIntersection), true);
+      if (selectedObj != scene.objs.length - 1) {
+        selectObj(scene.objs.length - 1); // Keep the constructing obj selected
+      }
+      const ret = objTypes[scene.objs[scene.objs.length - 1].type].onConstructMouseDown(scene.objs[scene.objs.length - 1], constructionPoint, new Mouse(mousePos_nogrid, scene, lastDeviceIsTouch), e.ctrlKey, e.shiftKey);
+      if (ret && ret.isDone) {
+        isConstructing = false;
+      }
+      if (ret && ret.requiresObjBarUpdate) {
+        selectObj(selectedObj);
+      }
+      if (ret && ret.requiresUndoPoint) {
+        createUndoPoint();
+      }
+      draw(!(objTypes[scene.objs[scene.objs.length - 1].type].onSimulationStart || objTypes[scene.objs[scene.objs.length - 1].type].checkRayIntersects), true);
     }
   }
   else {
     // lockobjs prevents selection, but alt overrides it
-    if ((!(document.getElementById('lockobjs').checked) != (e.altKey && AddingObjType != '')) && !(e.which == 3)) {
+    if ((!(scene.lockobjs) != (e.altKey && AddingObjType != '')) && !(e.which == 3)) {
 
-      draggingPart = {};
+      dragContext = {};
 
-      if (mode == 'observer') {
-        if (graphs.length_squared(mouse_nogrid, observer.c) < observer.r * observer.r) {
-          // The mouse clicked the observer
+      if (scene.mode == 'observer') {
+        if (geometry.distanceSquared(mousePos_nogrid, scene.observer.c) < scene.observer.r * scene.observer.r) {
+          // The mousePos clicked the observer
           draggingObj = -4;
-          draggingPart = {};
-          //draggingPart.part=0;
-          draggingPart.mouse0 = mouse; // Mouse position when the user starts dragging
-          draggingPart.mouse1 = mouse; // Mouse position at the last moment during dragging
-          draggingPart.snapData = {};
+          dragContext = {};
+          //dragContext.part=0;
+          dragContext.mousePos0 = mousePos; // Mouse position when the user starts dragging
+          dragContext.mousePos1 = mousePos; // Mouse position at the last moment during dragging
+          dragContext.snapContext = {};
           return;
         }
       }
 
-      var rets = selectionSearch(mouse_nogrid);
+      var rets = selectionSearch(mousePos_nogrid);
       var ret = rets[0];
       if (ret.targetObj_index != -1) {
-        if (!e.ctrlKey && objs.length > 0 && objs[0].type == "handle" && objs[0].notDone) {
+        if (!e.ctrlKey && scene.objs.length > 0 && scene.objs[0].type == "handle" && scene.objs[0].notDone) {
           // User is creating a handle
           removeObj(0);
           ret.targetObj_index--;
         }
         selectObj(ret.targetObj_index);
-        draggingPart = ret.mousePart;
-        draggingPart.originalObj = JSON.parse(JSON.stringify(objs[ret.targetObj_index])); // Store the obj status before dragging
-        draggingPart.hasDuplicated = false;
+        dragContext = ret.mousePart;
+        dragContext.originalObj = JSON.parse(JSON.stringify(scene.objs[ret.targetObj_index])); // Store the obj status before dragging
+        dragContext.hasDuplicated = false;
         draggingObj = ret.targetObj_index;
-        if (e.ctrlKey && draggingPart.targetPoint) {
+        if (e.ctrlKey && dragContext.targetPoint) {
           pendingControlPointSelection = true;
           pendingControlPoints = rets;
         }
@@ -178,36 +114,45 @@ function canvas_onmousedown(e) {
     }
 
     if (draggingObj == -1) {
-      // The mouse clicked the blank area
-      if (objs.length > 0 && objs[0].type == "handle" && objs[0].notDone) {
+      // The mousePos clicked the blank area
+      if (scene.objs.length > 0 && scene.objs[0].type == "handle" && scene.objs[0].notDone) {
         // User is creating a handle
-        finishHandleCreation(mouse);
+        finishHandleCreation(mousePos);
         return;
       }
       if ((AddingObjType == '') || (e.which == 3)) {
         // To drag the entire scene
         draggingObj = -3;
-        draggingPart = {};
-        draggingPart.mouse0 = mouse; // Mouse position when the user starts dragging
-        draggingPart.mouse1 = mouse; // Mouse position at the last moment during dragging
-        draggingPart.mouse2 = origin; //Original origin.
-        draggingPart.snapData = {};
+        dragContext = {};
+        dragContext.mousePos0 = mousePos; // Mouse position when the user starts dragging
+        dragContext.mousePos1 = mousePos; // Mouse position at the last moment during dragging
+        dragContext.mousePos2 = scene.origin; //Original origin.
+        dragContext.snapContext = {};
         selectObj(-1);
       }
       else {
         // Create a new object
-        objs[objs.length] = objTypes[AddingObjType].create(mouse);
+        constructionPoint = mousePos;
         isConstructing = true;
-        constructionPoint = mouse;
-        if (objs[selectedObj]) {
-          if (hasSameAttrType(objs[selectedObj], objs[objs.length - 1]) && objs[selectedObj].p) {
-            objs[objs.length - 1].p = objs[selectedObj].p; // Let the property of this obj to be the same as the previously selected obj (if of the same type)
+        scene.objs[scene.objs.length] = objTypes[AddingObjType].create(constructionPoint);
+        if (scene.objs[selectedObj]) {
+          if (scene.objs[selectedObj].type == scene.objs[scene.objs.length - 1].type && scene.objs[selectedObj].p) {
+            scene.objs[scene.objs.length - 1].p = scene.objs[selectedObj].p; // Let the property of this obj to be the same as the previously selected obj (if of the same type)
             // TODO: Generalized this to other properties.
           }
         }
-        selectObj(objs.length - 1);
-        objTypes[objs[objs.length - 1].type].c_mousedown(objs[objs.length - 1], mouse);
-        draw(!(objTypes[objs[objs.length - 1].type].shoot || objTypes[objs[objs.length - 1].type].rayIntersection), true);
+        selectObj(scene.objs.length - 1);
+        const ret = objTypes[scene.objs[scene.objs.length - 1].type].onConstructMouseDown(scene.objs[scene.objs.length - 1], constructionPoint, new Mouse(mousePos_nogrid, scene, lastDeviceIsTouch));
+        if (ret && ret.isDone) {
+          isConstructing = false;
+        }
+        if (ret && ret.requiresObjBarUpdate) {
+          selectObj(selectedObj);
+        }
+        if (ret && ret.requiresUndoPoint) {
+          createUndoPoint();
+        }
+        draw(!(objTypes[scene.objs[scene.objs.length - 1].type].onSimulationStart || objTypes[scene.objs[scene.objs.length - 1].type].checkRayIntersects), true);
         cancelRestore();
       }
     }
@@ -215,7 +160,7 @@ function canvas_onmousedown(e) {
 }
 
 // search for best object to select at mouse position
-function selectionSearch(mouse_nogrid) {
+function selectionSearch(mousePos_nogrid) {
   var i;
   var mousePart_;
   var click_lensq = Infinity;
@@ -226,19 +171,19 @@ function selectionSearch(mouse_nogrid) {
   var targetIsSelected = false;
   var results = [];
 
-  for (var i = 0; i < objs.length; i++) {
-    if (typeof objs[i] != 'undefined') {
-      mousePart_ = {};
-      if (objTypes[objs[i].type].clicked(objs[i], mouse_nogrid, mouse, mousePart_)) {
-        // click(() returns true means the mouse clicked the object
+  for (var i = 0; i < scene.objs.length; i++) {
+    if (typeof scene.objs[i] != 'undefined') {
+      let mousePart_ = objTypes[scene.objs[i].type].checkMouseOver(scene.objs[i], new Mouse(mousePos_nogrid, scene, lastDeviceIsTouch));
+      if (mousePart_) {
+        // the mouse is over the object
 
         if (mousePart_.targetPoint || mousePart_.targetPoint_) {
-          // The mouse clicked a point
+          // The mousePos clicked a point
           if (!targetIsPoint) {
             targetIsPoint = true; // If the mouse can click a point, then it must click a point
             results = [];
           }
-          var click_lensq_temp = graphs.length_squared(mouse_nogrid, (mousePart_.targetPoint || mousePart_.targetPoint_));
+          var click_lensq_temp = geometry.distanceSquared(mousePos_nogrid, (mousePart_.targetPoint || mousePart_.targetPoint_));
           if (click_lensq_temp <= click_lensq || targetObj_index == selectedObj) {
             // In case of clicking a point, choose the one nearest to the mouse
             // But if the object is the selected object, the points from this object have the highest priority.
@@ -276,20 +221,20 @@ function canvas_onmousemove(e) {
   } else {
     var et = e;
   }
-  var mouse_nogrid = graphs.point((et.pageX - e.target.offsetLeft - origin.x) / scale, (et.pageY - e.target.offsetTop - origin.y) / scale); // The real position of the mouse
-  var mouse2;
-  if (document.getElementById('grid').checked && !(e.altKey && !isConstructing)) {
-    mouse2 = graphs.point(Math.round(((et.pageX - e.target.offsetLeft - origin.x) / scale) / gridSize) * gridSize, Math.round(((et.pageY - e.target.offsetTop - origin.y) / scale) / gridSize) * gridSize);
+  var mousePos_nogrid = geometry.point((et.pageX - e.target.offsetLeft - scene.origin.x) / scene.scale, (et.pageY - e.target.offsetTop - scene.origin.y) / scene.scale); // The real position of the mouse
+  var mousePos2;
+  if (scene.grid && !(e.altKey && !isConstructing)) {
+    mousePos2 = geometry.point(Math.round(((et.pageX - e.target.offsetLeft - scene.origin.x) / scene.scale) / scene.gridSize) * scene.gridSize, Math.round(((et.pageY - e.target.offsetTop - scene.origin.y) / scene.scale) / scene.gridSize) * scene.gridSize);
   }
   else {
-    mouse2 = mouse_nogrid;
+    mousePos2 = mousePos_nogrid;
   }
 
-  if (!isConstructing && draggingObj == -1 && !document.getElementById('lockobjs').checked) {
-    // highlight object under mouse cursor
-    var ret = selectionSearch(mouse_nogrid)[0];
-    //console.log(mouse_nogrid);
-    var newMouseObj = (ret.targetObj_index == -1) ? null : objs[ret.targetObj_index];
+  if (!isConstructing && draggingObj == -1 && !scene.lockobjs) {
+    // highlight object under mousePos cursor
+    var ret = selectionSearch(mousePos_nogrid)[0];
+    //console.log(mousePos_nogrid);
+    var newMouseObj = (ret.targetObj_index == -1) ? null : scene.objs[ret.targetObj_index];
     if (mouseObj != newMouseObj) {
       mouseObj = newMouseObj;
       draw(true, true);
@@ -305,7 +250,7 @@ function canvas_onmousemove(e) {
         canvas.style.cursor = '';
       }
     } else {
-      if (mode == 'observer' && graphs.length_squared(mouse, observer.c) < observer.r * observer.r) {
+      if (scene.mode == 'observer' && geometry.distanceSquared(mousePos, scene.observer.c) < scene.observer.r * scene.observer.r) {
         canvas.style.cursor = 'pointer';
       } else {
         canvas.style.cursor = '';
@@ -313,39 +258,49 @@ function canvas_onmousemove(e) {
     }
   }
 
-  if (mouse2.x == mouse.x && mouse2.y == mouse.y) {
+  if (mousePos2.x == mousePos.x && mousePos2.y == mousePos.y) {
     return;
   }
-  mouse = mouse2;
+  mousePos = mousePos2;
 
+
+  document.getElementById('mouseCoordinates').innerHTML = getMsg('mouse_coordinates') + "(" + Math.round(mousePos.x) + "," + Math.round(mousePos.y) + ")";
 
   if (isConstructing) {
     // highlight object being constructed
-    mouseObj = objs[objs.length - 1];
+    mouseObj = scene.objs[scene.objs.length - 1];
 
     // If some object is being created, pass the action to it
-    objTypes[objs[objs.length - 1].type].c_mousemove(objs[objs.length - 1], mouse, e.ctrlKey, e.shiftKey);
-    draw(!(objTypes[objs[objs.length - 1].type].shoot || objTypes[objs[objs.length - 1].type].rayIntersection), true);
+    const ret = objTypes[scene.objs[scene.objs.length - 1].type].onConstructMouseMove(scene.objs[scene.objs.length - 1], constructionPoint, new Mouse(mousePos_nogrid, scene, lastDeviceIsTouch), e.ctrlKey, e.shiftKey);
+    if (ret && ret.isDone) {
+      isConstructing = false;
+    }
+    if (ret && ret.requiresObjBarUpdate) {
+      selectObj(selectedObj);
+    }
+    if (ret && ret.requiresUndoPoint) {
+      createUndoPoint();
+    }
+    draw(!(objTypes[scene.objs[scene.objs.length - 1].type].onSimulationStart || objTypes[scene.objs[scene.objs.length - 1].type].checkRayIntersects), true);
   }
   else {
-    var instantObserver = mode == 'observed_light' || mode == 'observed_images';
     if (draggingObj == -4) {
       if (e.shiftKey) {
-        var mouse_snapped = snapToDirection(mouse, draggingPart.mouse0, [{ x: 1, y: 0 }, { x: 0, y: 1 }], draggingPart.snapData);
+        var mousePos_snapped = snapToDirection(mousePos, dragContext.mousePos0, [{ x: 1, y: 0 }, { x: 0, y: 1 }], dragContext.snapContext);
       }
       else {
-        var mouse_snapped = mouse;
-        draggingPart.snapData = {}; // Unlock the dragging direction when the user release the shift key
+        var mousePos_snapped = mousePos;
+        dragContext.snapContext = {}; // Unlock the dragging direction when the user release the shift key
       }
 
-      var mouseDiffX = (mouse_snapped.x - draggingPart.mouse1.x); // The X difference between the mouse position now and at the previous moment
-      var mouseDiffY = (mouse_snapped.y - draggingPart.mouse1.y); // The Y difference between the mouse position now and at the previous moment
+      var mouseDiffX = (mousePos_snapped.x - dragContext.mousePos1.x); // The X difference between the mouse position now and at the previous moment
+      var mouseDiffY = (mousePos_snapped.y - dragContext.mousePos1.y); // The Y difference between the mouse position now and at the previous moment
 
-      observer.c.x += mouseDiffX;
-      observer.c.y += mouseDiffY;
+      scene.observer.c.x += mouseDiffX;
+      scene.observer.c.y += mouseDiffY;
 
       // Update the mouse position
-      draggingPart.mouse1 = mouse_snapped;
+      dragContext.mousePos1 = mousePos_snapped;
       draw(false, true);
     }
 
@@ -353,43 +308,43 @@ function canvas_onmousemove(e) {
     if (draggingObj >= 0) {
       // Here the mouse is dragging an object
 
-      objTypes[objs[draggingObj].type].dragging(objs[draggingObj], mouse, draggingPart, e.ctrlKey, e.shiftKey);
+      objTypes[scene.objs[draggingObj].type].onDrag(scene.objs[draggingObj], new Mouse(mousePos_nogrid, scene, lastDeviceIsTouch, e.altKey*1), dragContext, e.ctrlKey, e.shiftKey);
       // If dragging an entire object, then when Ctrl is hold, clone the object
-      if (draggingPart.part == 0) {
-        if (e.ctrlKey && !draggingPart.hasDuplicated) {
+      if (dragContext.part == 0) {
+        if (e.ctrlKey && !dragContext.hasDuplicated) {
 
-          objs[objs.length] = draggingPart.originalObj;
-          draggingPart.hasDuplicated = true;
+          scene.objs[scene.objs.length] = dragContext.originalObj;
+          dragContext.hasDuplicated = true;
         }
-        if (!e.ctrlKey && draggingPart.hasDuplicated) {
-          objs.length--;
-          draggingPart.hasDuplicated = false;
+        if (!e.ctrlKey && dragContext.hasDuplicated) {
+          scene.objs.length--;
+          dragContext.hasDuplicated = false;
         }
       }
 
-      draw(!(objTypes[objs[draggingObj].type].shoot || objTypes[objs[draggingObj].type].rayIntersection), true);
+      draw(!(objTypes[scene.objs[draggingObj].type].onSimulationStart || objTypes[scene.objs[draggingObj].type].checkRayIntersects), true);
 
-      if (draggingPart.requiresPBoxUpdate) {
+      if (dragContext.requiresObjBarUpdate) {
         selectObj(selectedObj);
       }
     }
 
     if (draggingObj == -3) {
       // Move the entire scene
-      // Here mouse is the currect mouse position, draggingPart.mouse1 is the mouse position at the previous moment
+      // Here mousePos is the currect mouse position, dragContext.mousePos1 is the mouse position at the previous moment
 
       if (e.shiftKey) {
-        var mouse_snapped = snapToDirection(mouse_nogrid, draggingPart.mouse0, [{ x: 1, y: 0 }, { x: 0, y: 1 }], draggingPart.snapData);
+        var mousePos_snapped = snapToDirection(mousePos_nogrid, dragContext.mousePos0, [{ x: 1, y: 0 }, { x: 0, y: 1 }], dragContext.snapContext);
       }
       else {
-        var mouse_snapped = mouse_nogrid;
-        draggingPart.snapData = {}; // Unlock the dragging direction when the user release the shift key
+        var mousePos_snapped = mousePos_nogrid;
+        dragContext.snapContext = {}; // Unlock the dragging direction when the user release the shift key
       }
 
-      var mouseDiffX = (mouse_snapped.x - draggingPart.mouse1.x); // The X difference between the mouse position now and at the previous moment
-      var mouseDiffY = (mouse_snapped.y - draggingPart.mouse1.y); // The Y difference between the mouse position now and at the previous moment
-      origin.x = mouseDiffX * scale + draggingPart.mouse2.x;
-      origin.y = mouseDiffY * scale + draggingPart.mouse2.y;
+      var mouseDiffX = (mousePos_snapped.x - dragContext.mousePos1.x); // The X difference between the mouse position now and at the previous moment
+      var mouseDiffY = (mousePos_snapped.y - dragContext.mousePos1.y); // The Y difference between the mouse position now and at the previous moment
+      scene.origin.x = mouseDiffX * scene.scale + dragContext.mousePos2.x;
+      scene.origin.y = mouseDiffY * scene.scale + dragContext.mousePos2.y;
       draw();
     }
 
@@ -401,8 +356,17 @@ function canvas_onmouseup(e) {
   if (isConstructing) {
     if ((e.which && e.which == 1) || (e.changedTouches)) {
       // If an object is being created, pass the action to it
-      objTypes[objs[objs.length - 1].type].c_mouseup(objs[objs.length - 1], mouse, e.ctrlKey, e.shiftKey);
-      draw(!(objTypes[objs[objs.length - 1].type].shoot || objTypes[objs[objs.length - 1].type].rayIntersection), true);
+      const ret = objTypes[scene.objs[scene.objs.length - 1].type].onConstructMouseUp(scene.objs[scene.objs.length - 1], constructionPoint, new Mouse(mousePos, scene, lastDeviceIsTouch), e.ctrlKey, e.shiftKey);
+      if (ret && ret.isDone) {
+        isConstructing = false;
+      }
+      if (ret && ret.requiresObjBarUpdate) {
+        selectObj(selectedObj);
+      }
+      if (ret && ret.requiresUndoPoint) {
+        createUndoPoint();
+      }
+      draw(!(objTypes[scene.objs[scene.objs.length - 1].type].onSimulationStart || objTypes[scene.objs[scene.objs.length - 1].type].checkRayIntersects), true);
       if (!isConstructing) {
         // The object says the contruction is done
         createUndoPoint();
@@ -418,9 +382,9 @@ function canvas_onmouseup(e) {
       pendingControlPointSelection = false
       addControlPointsForHandle(pendingControlPoints);
     }
-    if (e.which && e.which == 3 && draggingObj == -3 && mouse.x == draggingPart.mouse0.x && mouse.y == draggingPart.mouse0.y) {
+    if (e.which && e.which == 3 && draggingObj == -3 && mousePos.x == dragContext.mousePos0.x && mousePos.y == dragContext.mousePos0.y) {
       draggingObj = -1;
-      draggingPart = {};
+      dragContext = {};
       canvas_ondblclick(e);
       return;
     }
@@ -429,18 +393,18 @@ function canvas_onmouseup(e) {
       createUndoPoint();
     }
     draggingObj = -1;
-    draggingPart = {};
+    dragContext = {};
   }
 
 }
 
 function addControlPointsForHandle(controlPoints) {
-  if (!(objs[0].type == "handle" && objs[0].notDone)) {
-    objs.unshift(objTypes["handle"].create());
-    for (var i in objs) {
-      if (objs[i].type == "handle") {
-        for (var j in objs[i].controlPoints) {
-          objs[i].controlPoints[j].targetObj_index++;
+  if (!(scene.objs[0].type == "handle" && scene.objs[0].notDone)) {
+    scene.objs.unshift(objTypes["handle"].create());
+    for (var i in scene.objs) {
+      if (scene.objs[i].type == "handle") {
+        for (var j in scene.objs[i].controlPoints) {
+          scene.objs[i].controlPoints[j].targetObj_index++;
         }
       }
     }
@@ -451,39 +415,38 @@ function addControlPointsForHandle(controlPoints) {
     handleIndex = 0;
   }
   for (var i in controlPoints) {
-    objTypes["handle"].c_addControlPoint(objs[0], controlPoints[i]);
+    objTypes["handle"].addControlPoint(scene.objs[0], controlPoints[i]);
   }
   draw(true, true);
 }
 
 
 function finishHandleCreation(point) {
-  objTypes["handle"].c_finishHandle(objs[0], point);
+  objTypes["handle"].finishHandle(scene.objs[0], point);
   draw(true, true);
 }
 
 
 
-
 function canvas_ondblclick(e) {
   //console.log("dblclick");
-  var mouse = graphs.point((e.pageX - e.target.offsetLeft - origin.x) / scale, (e.pageY - e.target.offsetTop - origin.y) / scale); // The real position of the mouse (never use grid here)
+  var mousePos = geometry.point((e.pageX - e.target.offsetLeft - scene.origin.x) / scene.scale, (e.pageY - e.target.offsetTop - scene.origin.y) / scene.scale); // The real position of the mouse (never use grid here)
   if (isConstructing) {
   }
-  else if (mouseOnPoint(mouse, mouse_lastmousedown)) {
-    draggingPart = {};
-    if (mode == 'observer') {
-      if (graphs.length_squared(mouse, observer.c) < observer.r * observer.r) {
+  else if (new Mouse(mousePos, scene, lastDeviceIsTouch).isOnPoint(mousePos_lastmousedown)) {
+    dragContext = {};
+    if (scene.mode == 'observer') {
+      if (geometry.distanceSquared(mousePos, scene.observer.c) < scene.observer.r * scene.observer.r) {
 
-        // The mouse clicked the observer
+        // The mousePos clicked the observer
         positioningObj = -4;
-        draggingPart = {};
-        draggingPart.targetPoint = graphs.point(observer.c.x, observer.c.y);
-        draggingPart.snapData = {};
+        dragContext = {};
+        dragContext.targetPoint = geometry.point(scene.observer.c.x, scene.observer.c.y);
+        dragContext.snapContext = {};
 
-        document.getElementById('xybox').style.left = (draggingPart.targetPoint.x * scale + origin.x) + 'px';
-        document.getElementById('xybox').style.top = (draggingPart.targetPoint.y * scale + origin.y) + 'px';
-        document.getElementById('xybox').value = '(' + (draggingPart.targetPoint.x) + ',' + (draggingPart.targetPoint.y) + ')';
+        document.getElementById('xybox').style.left = (dragContext.targetPoint.x * scene.scale + scene.origin.x) + 'px';
+        document.getElementById('xybox').style.top = (dragContext.targetPoint.y * scene.scale + scene.origin.y) + 'px';
+        document.getElementById('xybox').value = '(' + (dragContext.targetPoint.x) + ',' + (dragContext.targetPoint.y) + ')';
         document.getElementById('xybox').size = document.getElementById('xybox').value.length;
         document.getElementById('xybox').style.display = '';
         document.getElementById('xybox').select();
@@ -495,18 +458,18 @@ function canvas_ondblclick(e) {
       }
     }
 
-    var ret = selectionSearch(mouse)[0];
+    var ret = selectionSearch(mousePos)[0];
     if (ret.targetObj_index != -1 && ret.mousePart.targetPoint) {
       selectObj(ret.targetObj_index);
-      draggingPart = ret.mousePart;
-      draggingPart.originalObj = JSON.parse(JSON.stringify(objs[ret.targetObj_index])); // Store the obj status before dragging
+      dragContext = ret.mousePart;
+      dragContext.originalObj = JSON.parse(JSON.stringify(scene.objs[ret.targetObj_index])); // Store the obj status before dragging
 
-      draggingPart.hasDuplicated = false;
+      dragContext.hasDuplicated = false;
       positioningObj = ret.targetObj_index;
 
-      document.getElementById('xybox').style.left = (draggingPart.targetPoint.x * scale + origin.x) + 'px';
-      document.getElementById('xybox').style.top = (draggingPart.targetPoint.y * scale + origin.y) + 'px';
-      document.getElementById('xybox').value = '(' + (draggingPart.targetPoint.x) + ',' + (draggingPart.targetPoint.y) + ')';
+      document.getElementById('xybox').style.left = (dragContext.targetPoint.x * scene.scale + scene.origin.x) + 'px';
+      document.getElementById('xybox').style.top = (dragContext.targetPoint.y * scene.scale + scene.origin.y) + 'px';
+      document.getElementById('xybox').value = '(' + (dragContext.targetPoint.x) + ',' + (dragContext.targetPoint.y) + ')';
       document.getElementById('xybox').size = document.getElementById('xybox').value.length;
       document.getElementById('xybox').style.display = '';
       document.getElementById('xybox').select();
@@ -529,14 +492,14 @@ function canvas_onmousewheel(e) {
   // cross-browser wheel delta
   var e = window.event || e; // old IE support
   var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-  var d = scale;
+  var d = scene.scale;
   if (delta < 0) {
-    d = scale - 0.25;
+    d = scene.scale - 0.25;
   } else if (delta > 0) {
-    d = scale + 0.25;
+    d = scene.scale + 0.25;
   }
   d = Math.max(0.25, Math.min(5.00, d)) * 100;
-  setScaleWithCenter(d / 100, (e.pageX - e.target.offsetLeft) / scale, (e.pageY - e.target.offsetTop) / scale);
+  setScaleWithCenter(d / 100, (e.pageX - e.target.offsetLeft) / scene.scale, (e.pageY - e.target.offsetTop) / scene.scale);
   //window.toolBarViewModel.zoom.value(d);
   canvas_onmousemove(e);
   return false;
@@ -545,57 +508,57 @@ function canvas_onmousewheel(e) {
 
 function selectObj(index) {
   hideAllPopovers();
-  if (pendingPBoxEvent) {
-    // If the user is in the middle of editing a value, then clearing the innerHTML of p_box will cause the change event not to fire, so we need to manually fire it.
-    pendingPBoxEvent();
-    pendingPBoxEvent = null;
+  if (objBar.pendingEvent) {
+    // If the user is in the middle of editing a value, then clearing the innerHTML of obj_bar_main will cause the change event not to fire, so we need to manually fire it.
+    objBar.pendingEvent();
+    objBar.pendingEvent = null;
   }
 
-  if (index < 0 || index >= objs.length) {
+  if (index < 0 || index >= scene.objs.length) {
     // If this object does not exist
     selectedObj = -1;
-    document.getElementById('obj_settings').style.display = 'none';
+    document.getElementById('obj_bar').style.display = 'none';
     showAdvancedOn = false;
     return;
   }
   selectedObj = index;
-  if (objs[index].type == 'handle') {
-    document.getElementById('obj_settings').style.display = 'none';
+  if (scene.objs[index].type == 'handle') {
+    document.getElementById('obj_bar').style.display = 'none';
     return;
   }
-  document.getElementById('obj_name').innerHTML = getMsg('toolname_' + objs[index].type);
+  document.getElementById('obj_name').innerHTML = getMsg('toolname_' + scene.objs[index].type);
   document.getElementById('showAdvanced').style.display = 'none';
   document.getElementById('showAdvanced_mobile_container').style.display = 'none';
-  if (objTypes[objs[index].type].p_box) {
-    document.getElementById('p_box').style.display = '';
-    document.getElementById('p_box').innerHTML = '';
-    objTypes[objs[index].type].p_box(objs[index], document.getElementById('p_box'));
+  if (objTypes[scene.objs[index].type].populateObjBar) {
+    document.getElementById('obj_bar_main').style.display = '';
+    document.getElementById('obj_bar_main').innerHTML = '';
+    objTypes[scene.objs[index].type].populateObjBar(scene.objs[index], objBar);
 
-    if (document.getElementById('p_box').innerHTML != '') {
-      for (var i = 0; i < objs.length; i++) {
-        if (i != selectedObj && hasSameAttrType(objs[i], objs[selectedObj])) {
+    if (document.getElementById('obj_bar_main').innerHTML != '') {
+      for (var i = 0; i < scene.objs.length; i++) {
+        if (i != selectedObj && scene.objs[i].type == scene.objs[selectedObj].type) {
           // If there is an object with the same type, then show "Apply to All"
-          document.getElementById('setAttrAll_box').style.display = '';
-          document.getElementById('applytoall_mobile_container').style.display = '';
+          document.getElementById('apply_to_all_box').style.display = '';
+          document.getElementById('apply_to_all_mobile_container').style.display = '';
           break;
         }
-        if (i == objs.length - 1) {
-          document.getElementById('setAttrAll_box').style.display = 'none';
-          document.getElementById('applytoall_mobile_container').style.display = 'none';
+        if (i == scene.objs.length - 1) {
+          document.getElementById('apply_to_all_box').style.display = 'none';
+          document.getElementById('apply_to_all_mobile_container').style.display = 'none';
         }
       }
     } else {
-      document.getElementById('setAttrAll_box').style.display = 'none';
-      document.getElementById('applytoall_mobile_container').style.display = 'none';
+      document.getElementById('apply_to_all_box').style.display = 'none';
+      document.getElementById('apply_to_all_mobile_container').style.display = 'none';
     }
   }
   else {
-    document.getElementById('p_box').style.display = 'none';
-    document.getElementById('setAttrAll_box').style.display = 'none';
-    document.getElementById('applytoall_mobile_container').style.display = 'none';
+    document.getElementById('obj_bar_main').style.display = 'none';
+    document.getElementById('apply_to_all_box').style.display = 'none';
+    document.getElementById('apply_to_all_mobile_container').style.display = 'none';
   }
 
-  document.getElementById('obj_settings').style.display = '';
+  document.getElementById('obj_bar').style.display = '';
 }
 
 
@@ -605,14 +568,14 @@ function confirmPositioning(ctrl, shift) {
   if (xyData.length == 2) {
     if (positioningObj == -4) {
       // Observer
-      observer.c.x = xyData[0];
-      observer.c.y = xyData[1];
+      scene.observer.c.x = xyData[0];
+      scene.observer.c.y = xyData[1];
       draw(false, true);
     }
     else {
       // Object
-      objTypes[objs[positioningObj].type].dragging(objs[positioningObj], graphs.point(xyData[0], xyData[1]), draggingPart, ctrl, shift);
-      draw(!(objTypes[objs[positioningObj].type].shoot || objTypes[objs[positioningObj].type].rayIntersection), true);
+      objTypes[scene.objs[positioningObj].type].onDrag(scene.objs[positioningObj], new Mouse(geometry.point(xyData[0], xyData[1]), scene, lastDeviceIsTouch, 2), dragContext, ctrl, shift);
+      draw(!(objTypes[scene.objs[positioningObj].type].onSimulationStart || objTypes[scene.objs[positioningObj].type].checkRayIntersects), true);
     }
     
     createUndoPoint();
@@ -624,21 +587,21 @@ function confirmPositioning(ctrl, shift) {
 function endPositioning() {
   document.getElementById('xybox').style.display = 'none';
   positioningObj = -1;
-  draggingPart = {};
+  dragContext = {};
 }
 
 function removeObj(index) {
-  for (var i = index; i < objs.length - 1; i++) {
-    objs[i] = JSON.parse(JSON.stringify(objs[i + 1]));
+  for (var i = index; i < scene.objs.length - 1; i++) {
+    scene.objs[i] = JSON.parse(JSON.stringify(scene.objs[i + 1]));
   }
 
-  for (var i in objs) {
-    if (objs[i].type == "handle") {
-      for (var j in objs[i].controlPoints) {
-        if (objs[i].controlPoints[j].targetObj_index > index) {
-          objs[i].controlPoints[j].targetObj_index--;
-        } else if (objs[i].controlPoints[j].targetObj_index == index) {
-          objs[i].controlPoints = [];
+  for (var i in scene.objs) {
+    if (scene.objs[i].type == "handle") {
+      for (var j in scene.objs[i].controlPoints) {
+        if (scene.objs[i].controlPoints[j].targetObj_index > index) {
+          scene.objs[i].controlPoints[j].targetObj_index--;
+        } else if (scene.objs[i].controlPoints[j].targetObj_index == index) {
+          scene.objs[i].controlPoints = [];
           break;
         }
       }
@@ -646,27 +609,27 @@ function removeObj(index) {
   }
 
   isConstructing = false;
-  objs.length = objs.length - 1;
+  scene.objs.length = scene.objs.length - 1;
   selectedObj--;
   selectObj(selectedObj);
 }
 
 function cloneObj(index) {
-  if (objs[index].type == "handle") {
+  if (scene.objs[index].type == "handle") {
     var indices = [];
-    for (var j in objs[index].controlPoints) {
-      if (indices.indexOf(objs[index].controlPoints[j].targetObj_index) == -1) {
-        indices.push(objs[index].controlPoints[j].targetObj_index);
+    for (var j in scene.objs[index].controlPoints) {
+      if (indices.indexOf(scene.objs[index].controlPoints[j].targetObj_index) == -1) {
+        indices.push(scene.objs[index].controlPoints[j].targetObj_index);
       }
     }
     //console.log(indices);
     for (var j in indices) {
-      if (objs[indices[j]].type != "handle") {
+      if (scene.objs[indices[j]].type != "handle") {
         cloneObj(indices[j]);
       }
     }
   } else {
-    objs[objs.length] = JSON.parse(JSON.stringify(objs[index]));
+    scene.objs[scene.objs.length] = JSON.parse(JSON.stringify(scene.objs[index]));
   }
 }
 
@@ -687,11 +650,11 @@ function createUndoPoint() {
 }
 
 function undo() {
-  if (isConstructing && !(objs.length > 0 && objs[objs.length - 1].type == 'drawing')) {
+  if (isConstructing && !(scene.objs.length > 0 && scene.objs[scene.objs.length - 1].type == 'drawing')) {
     // If the user is constructing an object when clicked the undo, then only stop the consturction rather than do the real undo
 
     isConstructing = false;
-    objs.length--;
+    scene.objs.length--;
     selectObj(-1);
 
     draw();

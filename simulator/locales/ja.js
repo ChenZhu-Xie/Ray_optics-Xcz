@@ -139,6 +139,10 @@ locales["ja"] = {
     "incomplete": false,
     "message": "円形ブロッカー"
   },
+  "toolname_diffractiongrating": {
+    "incomplete": true,
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "toolname_ruler": {
     "incomplete": false,
     "message": "定規"
@@ -315,6 +319,10 @@ locales["ja"] = {
     "incomplete": false,
     "message": "サークルブロッカー"
   },
+  "tool_diffractiongrating": {
+    "incomplete": true,
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "tool_ruler": {
     "incomplete": false,
     "message": "定規"
@@ -474,6 +482,18 @@ locales["ja"] = {
   "emissionangle": {
     "incomplete": false,
     "message": "放射角度 (°)"
+  },
+  "mirrored": {
+    "incomplete": true,
+    "message": "Mirrored"
+  },
+  "lines/mm": {
+    "incomplete": true,
+    "message": "Lines/mm"
+  },
+  "slit_ratio": {
+    "incomplete": true,
+    "message": "Slit width / line spacing"
   },
   "symmetric": {
     "incomplete": false,
@@ -646,6 +666,14 @@ locales["ja"] = {
   "beam_warning": {
     "incomplete": true,
     "message": "⚠️ Image detection may not work with divergent/random beams."
+  },
+  "image_detection_warning": {
+    "incomplete": true,
+    "message": "⚠️ This tool does not support image detection."
+  },
+  "non_color_mode_warning": {
+    "incomplete": true,
+    "message": "⚠️ This tool only works when \"Simulate Color\" is on."
   },
   "brightness_note_popover": {
     "incomplete": true,
@@ -847,6 +875,10 @@ locales["ja"] = {
     "incomplete": false,
     "message": "入射光線を吸収する円形の遮光板です。(ドラッグまたはクリックで作成)"
   },
+  "tool_diffractiongrating_popover": {
+    "incomplete": true,
+    "message": "A diffraction grating that splits light at an angle depending on wavelength. Warning: The intensities of diffracted rays may not be accurate. (Drag or click to create.)"
+  },
   "tool_ruler_popover": {
     "incomplete": false,
     "message": "ゼロと別の点の点からの定規。 スケールはピクセル単位です。 (ドラッグまたはクリックして作成します。)"
@@ -916,8 +948,8 @@ locales["ja"] = {
     "message": "パーセンテージでビューをズームします。"
   },
   "help_popover": {
-    "incomplete": false,
-    "message": "<b>ドラッグの制限</b><p>オブジェクトをドラッグするとき、Shift キーを押したままにすると、水平/垂直に制限されます。 Ctrl キーを押したままクローンを作成します。 線状のオブジェクトを作成するか、その端点をドラッグする場合、Shift キーを押したまま角度をロックするか、0°、45°、90° にスナップします。 Ctrl キーを押したままにして、中心を中心に回転/スケールします。</p><b>オブジェクトをグループ化、回転、スケールする</b><p> Ctrl キーを押しながら、いくつかのコントロール ポイント (端点など) をクリックし、空のスペースをクリックしてグループ化します。 をポイントしてハンドルを作成します。 ハンドルをドラッグして (または矢印キーを押して)、グループを移動します。 Shift キーを押しながらドラッグすると、水平/垂直に制限されます。 Ctrl+ドラッグして回転させ、Ctrl+Shift+ドラッグして拡大縮小します。 「+」をドラッグして回転/スケーリングの中心を設定します。 ハンドルをクリックし、Ctrl+D を押してグループを複製します。 グループを解除するには、[削除]を押します。 </p><b>座標を直接編集する</b><p>オブジェクトの制御点 (エンドポイントなど) をダブルクリックまたは右クリックし、(x,y) 座標をピクセル単位で編集し、Enter キーを押します。 </p><b>キーボード ショートカット</b><p>オブジェクトをクリックして選択したら、矢印キーを押して移動します。 Ctrl+D を押して複製します。 Deleteキーで削除できます。</p>"
+    "incomplete": true,
+    "message": "<b>ドラッグの制限</b><p>オブジェクトをドラッグするとき、Shift キーを押したままにすると、水平/垂直に制限されます。 Ctrl キーを押したままクローンを作成します。 線状のオブジェクトを作成するか、その端点をドラッグする場合、Shift キーを押したまま角度をロックするか、0°、45°、90° にスナップします。 Ctrl キーを押したままにして、中心を中心に回転/スケールします。</p><b>オブジェクトをグループ化、回転、スケールする</b><p> Ctrl キーを押しながら、いくつかのコントロール ポイント (端点など) をクリックし、空のスペースをクリックしてグループ化します。 をポイントしてハンドルを作成します。 ハンドルをドラッグして (または矢印キーを押して)、グループを移動します。 Shift キーを押しながらドラッグすると、水平/垂直に制限されます。 Ctrl+ドラッグして回転させ、Ctrl+Shift+ドラッグして拡大縮小します。 「+」をドラッグして回転/スケーリングの中心を設定します。 ハンドルをクリックし、Ctrl+D を押してグループを複製します。 グループを解除するには、[削除]を押します。 </p><b>座標を直接編集する</b><p>オブジェクトの制御点 (エンドポイントなど) をダブルクリックまたは右クリックし、(x,y) 座標をピクセル単位で編集し、Enter キーを押します。 </p><b>キーボード ショートカット</b><p>オブジェクトをクリックして選択したら、矢印キーを押して移動します。 Ctrl+D を押して複製します。 Deleteキーで削除できます。</p><b>Contact Us</b><p>The suggested way is to go to <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/discussions\">Discussions</a> or <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/issues\">Issues</a> on GitHub. If you do not use GitHub, you can also email us at <a href=\"mailto:ray-optics@phydemo.app\">ray-optics@phydemo.app</a> (please use English). </p><p>Direct contributions are also welcome (see <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/blob/master/CONTRIBUTING.md\">the contribution guide</a>).</p>"
   },
   "show_help_popups": {
     "incomplete": true,
@@ -966,5 +998,9 @@ locales["ja"] = {
   "force_stopped": {
     "incomplete": true,
     "message": "Force stopped."
+  },
+  "mouse_coordinates": {
+    "incomplete": true,
+    "message": "Mouse coordinates: "
   }
 }

@@ -2,50 +2,43 @@
 objTypes['cropbox'] = {
 
   // Show the property box
-  p_box: function(obj, elem) {
-    var width = graphs.length(obj.p1, obj.p2);
-    var height = graphs.length(obj.p1, obj.p3);
-    createNumberAttr(getMsg('cropbox_size'), 0, 1000, 1, width, function(obj, value) {
-      obj.p2 = graphs.point(obj.p1.x + 1*value, obj.p2.y);
-      obj.p4 = graphs.point(obj.p3.x + 1*value, obj.p4.y);
-    }, elem, null, true);
-    createNumberAttr('x', 0, 1000, 1, height, function(obj, value) {
-      obj.p3 = graphs.point(obj.p3.x, obj.p1.y + 1*value);
-      obj.p4 = graphs.point(obj.p4.x, obj.p2.y + 1*value);
-    }, elem, null, true);
-    createDropdownAttr(getMsg('image_format'), obj.format, {
+  populateObjBar: function (obj, objBar) {
+    var width = geometry.distance(obj.p1, obj.p2);
+    var height = geometry.distance(obj.p1, obj.p3);
+    objBar.createNumber(getMsg('cropbox_size'), 0, 1000, 1, width, function (obj, value) {
+      obj.p2 = geometry.point(obj.p1.x + 1 * value, obj.p2.y);
+      obj.p4 = geometry.point(obj.p3.x + 1 * value, obj.p4.y);
+    }, null, true);
+    objBar.createNumber('x', 0, 1000, 1, height, function (obj, value) {
+      obj.p3 = geometry.point(obj.p3.x, obj.p1.y + 1 * value);
+      obj.p4 = geometry.point(obj.p4.x, obj.p2.y + 1 * value);
+    }, null, true);
+    objBar.createDropdown(getMsg('image_format'), obj.format, {
       'png': 'PNG',
       'svg': 'SVG'
-    }, function(obj, value) {
+    }, function (obj, value) {
       obj.format = value;
-      selectObj(selectedObj);
-    }, elem);
+    }, null, true);
 
 
     if (obj.format != 'svg') {
-      createNumberAttr(getMsg('image_width'), 0, 1000, 1, obj.width, function(obj, value) {
-        obj.width = 1*value;
-      }, elem, null, true);
+      objBar.createNumber(getMsg('image_width'), 0, 1000, 1, obj.width, function (obj, value) {
+        obj.width = 1 * value;
+      }, null, true);
     } else {
-      createInfoBox(elem, getMsg('export_svg_popover'))
+      objBar.createInfoBox(getMsg('export_svg_popover'))
     }
 
-    createButton(getMsg('save'), function(obj) {
-      if (obj.format == 'svg') {
-        exportSVG(obj);
-      } else {
-        exportImage(obj);
-      }
-    }, elem);
-    createButton(getMsg('save_cancel'), function(obj) {
-      cropMode = false;
-      selectObj(-1);
-      draw(true, true);
-    }, elem);
+    objBar.createButton(getMsg('save'), function (obj) {
+      confirmCrop(obj);
+    });
+    objBar.createButton(getMsg('save_cancel'), function (obj) {
+      cancelCrop();
+    });
   },
 
   // Move the object
-  move: function(obj, diffX, diffY) {
+  move: function (obj, diffX, diffY) {
     obj.p1.x = obj.p1.x + diffX;
     obj.p1.y = obj.p1.y + diffY;
     obj.p2.x = obj.p2.x + diffX;
@@ -57,147 +50,147 @@ objTypes['cropbox'] = {
     return obj;
   },
 
-
   // When the drawing area is clicked (test which part of the obj is clicked)
-  clicked: function(obj, mouse_nogrid, mouse, draggingPart) {
+  checkMouseOver: function (obj, mouse) {
+    let dragContext = {};
     if (!cropMode) return false;
 
     // Top left
-    if (mouseOnPoint(mouse_nogrid, obj.p1)) {
-      draggingPart.part = 1;
-      draggingPart.targetPoint = graphs.point(obj.p1.x, obj.p1.y);
-      draggingPart.cursor = 'nwse-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnPoint(obj.p1)) {
+      dragContext.part = 1;
+      dragContext.targetPoint = geometry.point(obj.p1.x, obj.p1.y);
+      dragContext.cursor = 'nwse-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Top right
-    if (mouseOnPoint(mouse_nogrid, obj.p2)) {
-      draggingPart.part = 2;
-      draggingPart.targetPoint = graphs.point(obj.p2.x, obj.p2.y);
-      draggingPart.cursor = 'nesw-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnPoint(obj.p2)) {
+      dragContext.part = 2;
+      dragContext.targetPoint = geometry.point(obj.p2.x, obj.p2.y);
+      dragContext.cursor = 'nesw-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Bottom left
-    if (mouseOnPoint(mouse_nogrid, obj.p3)) {
-      draggingPart.part = 3;
-      draggingPart.targetPoint = graphs.point(obj.p3.x, obj.p3.y);
-      draggingPart.cursor = 'nesw-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnPoint(obj.p3)) {
+      dragContext.part = 3;
+      dragContext.targetPoint = geometry.point(obj.p3.x, obj.p3.y);
+      dragContext.cursor = 'nesw-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Bottom right
-    if (mouseOnPoint(mouse_nogrid, obj.p4)) {
-      draggingPart.part = 4;
-      draggingPart.targetPoint = graphs.point(obj.p4.x, obj.p4.y);
-      draggingPart.cursor = 'nwse-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnPoint(obj.p4)) {
+      dragContext.part = 4;
+      dragContext.targetPoint = geometry.point(obj.p4.x, obj.p4.y);
+      dragContext.cursor = 'nwse-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Top
-    if (mouseOnSegment(mouse_nogrid, graphs.segment(obj.p1, obj.p2))) {
-      draggingPart.part = 5;
-      draggingPart.cursor = 'ns-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnSegment(geometry.line(obj.p1, obj.p2))) {
+      dragContext.part = 5;
+      dragContext.cursor = 'ns-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Right
-    if (mouseOnSegment(mouse_nogrid, graphs.segment(obj.p2, obj.p4))) {
-      draggingPart.part = 6;
-      draggingPart.cursor = 'ew-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnSegment(geometry.line(obj.p2, obj.p4))) {
+      dragContext.part = 6;
+      dragContext.cursor = 'ew-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Bottom
-    if (mouseOnSegment(mouse_nogrid, graphs.segment(obj.p3, obj.p4))) {
-      draggingPart.part = 7;
-      draggingPart.cursor = 'ns-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnSegment(geometry.line(obj.p3, obj.p4))) {
+      dragContext.part = 7;
+      dragContext.cursor = 'ns-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Left
-    if (mouseOnSegment(mouse_nogrid, graphs.segment(obj.p1, obj.p3))) {
-      draggingPart.part = 8;
-      draggingPart.cursor = 'ew-resize';
-      draggingPart.requiresPBoxUpdate = true;
-      return true;
+    if (mouse.isOnSegment(geometry.line(obj.p1, obj.p3))) {
+      dragContext.part = 8;
+      dragContext.cursor = 'ew-resize';
+      dragContext.requiresObjBarUpdate = true;
+      return dragContext;
     }
     // Inside
-    if ((obj.p1.x < mouse_nogrid.x && mouse_nogrid.x < obj.p2.x) && (obj.p1.y < mouse_nogrid.y && mouse_nogrid.y < obj.p3.y)) {
-      draggingPart.part = 0;
-      draggingPart.mouse0 = mouse; // Mouse position when the user starts dragging
-      draggingPart.mouse1 = mouse; // Mouse position at the last moment during dragging
-      draggingPart.snapData = {};
-      return true;
+    const mousePos = mouse.getPosSnappedToGrid();
+    if ((obj.p1.x < mousePos.x && mousePos.x < obj.p2.x) && (obj.p1.y < mousePos.y && mousePos.y < obj.p3.y)) {
+      dragContext.part = 0;
+      dragContext.mousePos0 = mousePos; // Mouse position when the user starts dragging
+      dragContext.mousePos1 = mousePos; // Mouse position at the last moment during dragging
+      dragContext.snapContext = {};
+      return dragContext;
     }
-    return false;
   },
 
   // When the user is dragging the obj
-  dragging: function(obj, mouse, draggingPart, ctrl, shift) {
+  onDrag: function (obj, mouse, dragContext, ctrl, shift) {
+    const mousePos = mouse.getPosSnappedToGrid();
+
     // Top left
-    if (draggingPart.part == 1) {
-      obj.p1.x = mouse.x;
-      obj.p1.y = mouse.y;
-      obj.p2.y = mouse.y;
-      obj.p3.x = mouse.x;
+    if (dragContext.part == 1) {
+      obj.p1.x = mousePos.x;
+      obj.p1.y = mousePos.y;
+      obj.p2.y = mousePos.y;
+      obj.p3.x = mousePos.x;
     }
     // Top right
-    else if (draggingPart.part == 2) {
-      obj.p2.x = mouse.x;
-      obj.p2.y = mouse.y;
-      obj.p1.y = mouse.y;
-      obj.p4.x = mouse.x;
+    else if (dragContext.part == 2) {
+      obj.p2.x = mousePos.x;
+      obj.p2.y = mousePos.y;
+      obj.p1.y = mousePos.y;
+      obj.p4.x = mousePos.x;
     }
     // Bottom left
-    else if (draggingPart.part == 3) {
-      obj.p3.x = mouse.x;
-      obj.p3.y = mouse.y;
-      obj.p1.x = mouse.x;
-      obj.p4.y = mouse.y;
+    else if (dragContext.part == 3) {
+      obj.p3.x = mousePos.x;
+      obj.p3.y = mousePos.y;
+      obj.p1.x = mousePos.x;
+      obj.p4.y = mousePos.y;
     }
     // Bottom right
-    else if (draggingPart.part == 4) {
-      obj.p4.x = mouse.x;
-      obj.p4.y = mouse.y;
-      obj.p2.x = mouse.x;
-      obj.p3.y = mouse.y;
+    else if (dragContext.part == 4) {
+      obj.p4.x = mousePos.x;
+      obj.p4.y = mousePos.y;
+      obj.p2.x = mousePos.x;
+      obj.p3.y = mousePos.y;
     }
     // Top
-    else if (draggingPart.part == 5) {
-      obj.p1.y = mouse.y;
-      obj.p2.y = mouse.y;
+    else if (dragContext.part == 5) {
+      obj.p1.y = mousePos.y;
+      obj.p2.y = mousePos.y;
     }
     // Right
-    else if (draggingPart.part == 6) {
-      obj.p2.x = mouse.x;
-      obj.p4.x = mouse.x;
+    else if (dragContext.part == 6) {
+      obj.p2.x = mousePos.x;
+      obj.p4.x = mousePos.x;
     }
     // Bottom
-    else if (draggingPart.part == 7) {
-      obj.p3.y = mouse.y;
-      obj.p4.y = mouse.y;
+    else if (dragContext.part == 7) {
+      obj.p3.y = mousePos.y;
+      obj.p4.y = mousePos.y;
     }
     // Left
-    else if (draggingPart.part == 8) {
-      obj.p1.x = mouse.x;
-      obj.p3.x = mouse.x;
+    else if (dragContext.part == 8) {
+      obj.p1.x = mousePos.x;
+      obj.p3.x = mousePos.x;
     }
     // Inside
-    else if (draggingPart.part == 0) {
-      if (shift)
-      {
-        var mouse_snapped = snapToDirection(mouse, draggingPart.mouse0, [{x: 1, y: 0},{x: 0, y: 1}], draggingPart.snapData);
+    else if (dragContext.part == 0) {
+      if (shift) {
+        var mousePosSnapped = mouse.getPosSnappedToDirection(dragContext.mousePos0, [{ x: 1, y: 0 }, { x: 0, y: 1 }], dragContext.snapContext);
       }
-      else
-      {
-        var mouse_snapped = mouse;
-        draggingPart.snapData = {}; // Unlock the dragging direction when the user release the shift key
+      else {
+        var mousePosSnapped = mouse.getPosSnappedToGrid();
+        dragContext.snapContext = {}; // Unlock the dragging direction when the user release the shift key
       }
-  
-      var mouseDiffX = draggingPart.mouse1.x - mouse_snapped.x; // The X difference between the mouse position now and at the previous moment
-      var mouseDiffY = draggingPart.mouse1.y - mouse_snapped.y; // The Y difference between the mouse position now and at the previous moment
-      
+
+      var mouseDiffX = dragContext.mousePos1.x - mousePosSnapped.x; // The X difference between the mouse position now and at the previous moment
+      var mouseDiffY = dragContext.mousePos1.y - mousePosSnapped.y; // The Y difference between the mouse position now and at the previous moment
+
 
       obj.p1.x -= mouseDiffX;
       obj.p1.y -= mouseDiffY;
@@ -209,17 +202,18 @@ objTypes['cropbox'] = {
       obj.p4.y -= mouseDiffY;
 
       // Update the mouse position
-      draggingPart.mouse1 = mouse_snapped;
+      dragContext.mousePos1 = mousePosSnapped;
     }
 
   },
 
   // Draw the obj on canvas
-  draw: function(obj, ctx, aboveLight) {    
+  draw: function (obj, canvasRenderer, isAboveLight, isHovered) {
+    const ctx = canvasRenderer.ctx;
     if (!cropMode) return;
 
     // Draw the crop box
-    ctx.strokeStyle = getMouseStyle(obj,'white');
+    ctx.strokeStyle = isHovered ? 'cyan' : ('white');
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(obj.p1.x, obj.p1.y);
@@ -230,7 +224,7 @@ objTypes['cropbox'] = {
     ctx.stroke();
 
     // Draw the crop box's corner points
-    ctx.fillStyle = getMouseStyle(obj,'white');
+    ctx.fillStyle = isHovered ? 'cyan' : ('white');
     ctx.beginPath();
     ctx.arc(obj.p1.x, obj.p1.y, 5, 0, 2 * Math.PI);
     ctx.fill();
@@ -243,7 +237,7 @@ objTypes['cropbox'] = {
     ctx.beginPath();
     ctx.arc(obj.p4.x, obj.p4.y, 5, 0, 2 * Math.PI);
     ctx.fill();
-    
+
   }
 
 };

@@ -105,6 +105,9 @@ locales["en"] = {
   "toolname_blackcircle": {
     "message": "Circle Blocker"
   },
+  "toolname_diffractiongrating": {
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "toolname_ruler": {
     "message": "Ruler"
   },
@@ -237,6 +240,9 @@ locales["en"] = {
   "tool_blackcircle": {
     "message": "Circle Blocker"
   },
+  "tool_diffractiongrating": {
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "tool_ruler": {
     "message": "Ruler"
   },
@@ -356,6 +362,15 @@ locales["en"] = {
   },
   "emissionangle": {
     "message": "Emission Angle (°)"
+  },
+  "mirrored": {
+    "message": "Mirrored"
+  },
+  "lines/mm": {
+    "message": "Lines/mm"
+  },
+  "slit_ratio": {
+    "message": "Slit width / line spacing"
   },
   "symmetric": {
     "message": "Symmetric"
@@ -485,6 +500,12 @@ locales["en"] = {
   },
   "beam_warning": {
     "message": "⚠️ Image detection may not work with divergent/random beams."
+  },
+  "image_detection_warning": {
+    "message": "⚠️ This tool does not support image detection."
+  },
+  "non_color_mode_warning": {
+    "message": "⚠️ This tool only works when \"Simulate Color\" is on."
   },
   "brightness_note_popover": {
     "message": "<p>Only effective if 'Ray Density' is high enough.</p><p>To control the numbers of rays emitted, please adjust the global 'Ray Density' slider instead.</p>"
@@ -636,6 +657,9 @@ locales["en"] = {
   "tool_blackcircle_popover": {
     "message": "A circle light blocker which absorbs the incident rays. (Drag or click to create.)"
   },
+  "tool_diffractiongrating_popover": {
+    "message": "A diffraction grating that splits light at an angle depending on wavelength. Warning: The intensities of diffracted rays may not be accurate. (Drag or click to create.)"
+  },
   "tool_ruler_popover": {
     "message": "A ruler from a point for zero and another point. The scale is in pixels. (Drag or click to create.)"
   },
@@ -688,7 +712,7 @@ locales["en"] = {
     "message": "Zoom the view with percentage."
   },
   "help_popover": {
-    "message": "<b>Constrained dragging</b><p>When dragging an object, hold Shift to limit to horizontal/vertical; hold Ctrl to clone. When creating a line-shaped object or dragging its endpoints, hold Shift to lock the angle or snap to 0°, 45°, 90°; hold Ctrl to rotate/scale about its center.</p><b>Group, rotate, and scale objects</b><p> Hold Ctrl, click several control points (e.g. endpoints), then click empty space to group these points and create a handle. Drag the handle (or press arrow keys) to move the group; Shift+drag to limit to horizontal/vertical; Ctrl+drag to rotate, Ctrl+Shift+drag to scale. Drag the \"+\" to set rotation/scaling center. Click the handle and press Ctrl+D to duplicate the group; press Delete to ungroup. </p><b>Edit coordinates directly</b><p>Double-click or right-click the control point (e.g. endpoint) of the object, edit the (x,y) coordinates in pixels, then press Enter.</p><b>Keyboard shortcuts</b><p>When an object is selected (by clicking it), press arrow keys to move; Ctrl+D to duplicate; Delete key to delete.</p>"
+    "message": "<b>Constrained dragging</b><p>When dragging an object, hold Shift to limit to horizontal/vertical; hold Ctrl to clone. When creating a line-shaped object or dragging its endpoints, hold Shift to lock the angle or snap to 0°, 45°, 90°; hold Ctrl to rotate/scale about its center.</p><b>Group, rotate, and scale objects</b><p> Hold Ctrl, click several control points (e.g. endpoints), then click empty space to group these points and create a handle. Drag the handle (or press arrow keys) to move the group; Shift+drag to limit to horizontal/vertical; Ctrl+drag to rotate, Ctrl+Shift+drag to scale. Drag the \"+\" to set rotation/scaling center. Click the handle and press Ctrl+D to duplicate the group; press Delete to ungroup. </p><b>Edit coordinates directly</b><p>Double-click or right-click the control point (e.g. endpoint) of the object, edit the (x,y) coordinates in pixels, then press Enter.</p><b>Keyboard shortcuts</b><p>When an object is selected (by clicking it), press arrow keys to move; Ctrl+D to duplicate; Delete key to delete.</p><b>Contact Us</b><p>The suggested way is to go to <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/discussions\">Discussions</a> or <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/issues\">Issues</a> on GitHub. If you do not use GitHub, you can also email us at <a href=\"mailto:ray-optics@phydemo.app\">ray-optics@phydemo.app</a>. </p><p>Direct contributions are also welcome (see <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/blob/master/CONTRIBUTING.md\">the contribution guide</a>).</p>"
   },
   "show_help_popups": {
     "message": "Show help popups"
@@ -725,5 +749,8 @@ locales["en"] = {
   },
   "force_stopped": {
     "message": "Force stopped."
+  },
+  "mouse_coordinates": {
+    "message": "Mouse coordinates: "
   }
 }

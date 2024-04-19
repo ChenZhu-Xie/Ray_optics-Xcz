@@ -1,12 +1,5 @@
 var waitingRays = []; // The rays waiting for shooting
 var waitingRayCount = 0; // Number of rays waiting for shooting
-var rayDensity_light = 0.1; // The Ray Density when View is Rays or Extended rays
-var rayDensity_images = 1; // The Ray Density when View is All Images or Seen by Observer
-var mode = 'light';
-var extendLight = false;
-var showLight = true;
-var colorMode = false;
-var symbolicGrin = false; // Body merging functionality (used in GRIN objects such as 'grin_circlelens' and 'grin_refractor') uses symbolic math
 var timerID = -1;
 var isDrawing = false;
 var isExporting = false;
@@ -19,7 +12,7 @@ var stateOutdated = false; // The state has changed since last draw
 var minShotLength = 1e-6; // The minimal length between two interactions with rays (when smaller than this, the interaction will be ignored)
 var minShotLength_squared = minShotLength * minShotLength;
 var totalTruncation = 0;
-var canvasPainter;
+var canvasRenderer;
 
 const UV_WAVELENGTH = 380;
 const VIOLET_WAVELENGTH = 420;
@@ -64,20 +57,20 @@ function draw_(skipLight, skipGrid) {
   JSONOutput();
 
   if (ctx0.constructor != C2S) {
-    var canvasPainter0 = new CanvasPainter(ctx0, {x: origin.x*dpr, y: origin.y*dpr}, (scale*dpr), backgroundImage);
-    var canvasPainter1 = new CanvasPainter(ctx, {x: origin.x*dpr, y: origin.y*dpr}, (scale*dpr));
+    var canvasRenderer0 = new CanvasRenderer(ctx0, {x: scene.origin.x*dpr, y: scene.origin.y*dpr}, (scene.scale*dpr), scene.backgroundImage);
+    var canvasRenderer1 = new CanvasRenderer(ctx, {x: scene.origin.x*dpr, y: scene.origin.y*dpr}, (scene.scale*dpr));
     
-    canvasPainter0.cls();
-    canvasPainter1.cls();
+    canvasRenderer0.clear();
+    canvasRenderer1.clear();
   }
 
   if (!skipLight) {
-    delete canvasPainter;
-    canvasPainter = new CanvasPainter(ctxLight, {x: origin.x*dpr, y: origin.y*dpr}, (scale*dpr));
-    canvasPainter.cls();
+    delete canvasRenderer;
+    canvasRenderer = new CanvasRenderer(ctxLight, {x: scene.origin.x*dpr, y: scene.origin.y*dpr}, (scene.scale*dpr));
+    canvasRenderer.clear();
 
     if (ctx0.constructor == C2S) {
-      ctx.translate(origin.x / (scale*dpr), origin.y / (scale*dpr));
+      ctx.translate(scene.origin.x / (scene.scale*dpr), scene.origin.y / (scene.scale*dpr));
     }
 
     ctx.globalAlpha = 1;
@@ -89,20 +82,20 @@ function draw_(skipLight, skipGrid) {
   if (!skipGrid && ctx0.constructor != C2S)
   {
 
-    var canvasPainterGrid = new CanvasPainter(ctxGrid, {x: origin.x*dpr, y: origin.y*dpr}, (scale*dpr));
-    canvasPainterGrid.cls();
+    var canvasRendererGrid = new CanvasRenderer(ctxGrid, {x: scene.origin.x*dpr, y: scene.origin.y*dpr}, (scene.scale*dpr));
+    canvasRendererGrid.clear();
 
-    if (document.getElementById('showgrid').checked) {
+    if (scene.showGrid) {
       // Draw the grid
 
       ctxGrid.save();
-      ctxGrid.setTransform((scale*dpr), 0, 0, (scale*dpr), 0, 0);
+      ctxGrid.setTransform((scene.scale*dpr), 0, 0, (scene.scale*dpr), 0, 0);
       var dashstep = 4;
 
       ctxGrid.strokeStyle = 'rgb(255,255,255,0.25)';
 
       var dashPattern;
-      if (dashstep * scale <= 2) {
+      if (dashstep * scene.scale <= 2) {
         // The dash pattern is too dense, so we just draw a solid line
         dashPattern = [];
       } else {
@@ -115,17 +108,17 @@ function draw_(skipLight, skipGrid) {
 
       // Draw vertical dashed lines
       ctxGrid.beginPath();
-      for (var x = origin.x / scale % gridSize; x <= ctxGrid.canvas.width / (scale * dpr); x += gridSize) {
-        ctxGrid.moveTo(x, origin.y / scale % gridSize - gridSize);
-        ctxGrid.lineTo(x, ctxGrid.canvas.height / (scale * dpr));
+      for (var x = scene.origin.x / scene.scale % scene.gridSize; x <= ctxGrid.canvas.width / (scene.scale * dpr); x += scene.gridSize) {
+        ctxGrid.moveTo(x, scene.origin.y / scene.scale % scene.gridSize - scene.gridSize);
+        ctxGrid.lineTo(x, ctxGrid.canvas.height / (scene.scale * dpr));
       }
       ctxGrid.stroke();
 
       // Draw horizontal dashed lines
       ctxGrid.beginPath();
-      for (var y = origin.y / scale % gridSize; y <= ctxGrid.canvas.height / (scale * dpr); y += gridSize) {
-        ctxGrid.moveTo(origin.x / scale % gridSize - gridSize, y);
-        ctxGrid.lineTo(ctxGrid.canvas.width / (scale * dpr), y);
+      for (var y = scene.origin.y / scene.scale % scene.gridSize; y <= ctxGrid.canvas.height / (scene.scale * dpr); y += scene.gridSize) {
+        ctxGrid.moveTo(scene.origin.x / scene.scale % scene.gridSize - scene.gridSize, y);
+        ctxGrid.lineTo(ctxGrid.canvas.width / (scene.scale * dpr), y);
       }
       ctxGrid.stroke();
       ctxGrid.setLineDash([]);
@@ -136,9 +129,9 @@ function draw_(skipLight, skipGrid) {
 
   if (!(ctx0.constructor == C2S && skipLight)) {
     // Sort the objects with z-index.
-    var mapped = objs.map(function(obj, i) {
-      if (objTypes[obj.type].zIndex) {
-        return {index: i, value: objTypes[obj.type].zIndex(obj)};
+    var mapped = scene.objs.map(function(obj, i) {
+      if (objTypes[obj.type].getZIndex) {
+        return {index: i, value: objTypes[obj.type].getZIndex(obj)};
       } else {
         return {index: i, value: 0};
       }
@@ -147,13 +140,21 @@ function draw_(skipLight, skipGrid) {
       return a.value - b.value;
     });
     // Draw the objects
-    for (var j = 0; j < objs.length; j++)
+    for (var j = 0; j < scene.objs.length; j++)
     {
       var i = mapped[j].index;
-      objTypes[objs[i].type].draw(objs[i], ctx0, false);
-      if (!skipLight && objTypes[objs[i].type].shoot)
+      objTypes[scene.objs[i].type].draw(scene.objs[i], ctx0.constructor == C2S ? canvasRenderer : canvasRenderer0, false, scene.objs[i] === mouseObj);
+      if (!skipLight && objTypes[scene.objs[i].type].onSimulationStart)
       {
-        objTypes[objs[i].type].shoot(objs[i]); // If objs[i] can shoot rays, shoot them.
+        const ret = objTypes[scene.objs[i].type].onSimulationStart(scene.objs[i]); // If scene.objs[i] can shoot rays, shoot them.
+        if (ret) {
+          if (ret.newRays) {
+            waitingRays.push(...ret.newRays);
+          }
+          if (ret.truncation) {
+            totalTruncation += ret.truncation;
+          }
+        }
       }
     }
   }
@@ -169,54 +170,25 @@ function draw_(skipLight, skipGrid) {
   }
 
   if (skipLight) {
-    // Draw the "above light" layer of objs. Note that we only draw this when skipLight is true because otherwise shootWaitingRays() will be called and the "above light" layer will still be drawn, since draw() is called again in shootWaitingRays() with skipLight set to true.
+    // Draw the "above light" layer of scene.objs. Note that we only draw this when skipLight is true because otherwise shootWaitingRays() will be called and the "above light" layer will still be drawn, since draw() is called again in shootWaitingRays() with skipLight set to true.
 
-    for (var i = 0; i < objs.length; i++)
+    for (var i = 0; i < scene.objs.length; i++)
     {
-      objTypes[objs[i].type].draw(objs[i], ctx, true); // Draw objs[i]
+      objTypes[scene.objs[i].type].draw(scene.objs[i], ctx0.constructor == C2S ? canvasRenderer : canvasRenderer1, true, scene.objs[i] === mouseObj); // Draw scene.objs[i]
     }
-    if (mode == 'observer')
+    if (scene.mode == 'observer')
     {
       // Draw the observer
       ctx.globalAlpha = 1;
       ctx.beginPath();
       ctx.fillStyle = 'blue';
-      ctx.arc(observer.c.x, observer.c.y, observer.r, 0, Math.PI * 2, false);
+      ctx.arc(scene.observer.c.x, scene.observer.c.y, scene.observer.r, 0, Math.PI * 2, false);
       ctx.fill();
     }
   }
 
   lastDrawTime = new Date();
 }
-
-function addRay(ray) {
-  waitingRays[waitingRays.length] = ray;
-}
-
-function getRayDensity()
-{
-  if (mode == 'images' || mode == 'observer')
-  {
-    return rayDensity_images;
-  }
-  else
-  {
-    return rayDensity_light;
-  }
-}
-
-function setRayDensity(value)
-{
-  if (mode == 'images' || mode == 'observer')
-  {
-    rayDensity_images = value;
-  }
-  else
-  {
-    rayDensity_light = value;
-  }
-}
-
 
 var last_ray;
 var last_intersection;
@@ -243,7 +215,7 @@ function shootWaitingRays() {
   var surfaceMerging_objs = [];
 
   
-  if (colorMode) {
+  if (scene.colorMode) {
     ctxLight.globalCompositeOperation = 'screen';
   }
 
@@ -256,9 +228,9 @@ function shootWaitingRays() {
       timerID = setTimeout(shootWaitingRays, firstBreak ? 100:1);
       firstBreak = false;
       document.getElementById('forceStop').style.display = '';
-      document.getElementById('status').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation.toFixed(3) + '<br>' + getMsg("time_elapsed") + (new Date() - drawBeginTime) + '<br>';
+      document.getElementById('simulatorStatus').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation.toFixed(3) + '<br>' + getMsg("time_elapsed") + (new Date() - drawBeginTime) + '<br>';
 
-      draw(true, true); // Redraw the objs to avoid outdated information (e.g. detector readings).
+      draw(true, true); // Redraw the scene.objs to avoid outdated information (e.g. detector readings).
       return;
     }
     if (isExporting && shotRayCount > exportRayCountLimit)
@@ -285,7 +257,7 @@ function shootWaitingRays() {
 
 
     var j = waitingRaysIndex;
-    if (waitingRays[j] && waitingRays[j].exist)
+    if (waitingRays[j])
     {
       // Start handling waitingRays[j]
       // Test which object will this ray shoot on first
@@ -297,32 +269,32 @@ function shootWaitingRays() {
       surfaceMerging_objs = []; // The objects whose surface is to be merged with s_obj
       s_lensq = Infinity;
       observed = false; // Whether waitingRays[j] is observed by the observer
-      for (var i = 0; i < objs.length; i++)
+      for (var i = 0; i < scene.objs.length; i++)
       {
-        // if objs[i] can affect the ray
-        if (objTypes[objs[i].type].rayIntersection) {
-          // Test whether objs[i] intersects with the ray
-          s_point_temp = objTypes[objs[i].type].rayIntersection(objs[i], waitingRays[j]);
+        // if scene.objs[i] can affect the ray
+        if (objTypes[scene.objs[i].type].checkRayIntersects) {
+          // Test whether scene.objs[i] intersects with the ray
+          s_point_temp = objTypes[scene.objs[i].type].checkRayIntersects(scene.objs[i], waitingRays[j]);
           if (s_point_temp)
           {
-            // Here objs[i] intersects with the ray at s_point_temp
-            s_lensq_temp = graphs.length_squared(waitingRays[j].p1, s_point_temp);
-            if (s_point && graphs.length_squared(s_point_temp, s_point) < minShotLength_squared && (objTypes[objs[i].type].supportSurfaceMerging || objTypes[s_obj.type].supportSurfaceMerging))
+            // Here scene.objs[i] intersects with the ray at s_point_temp
+            s_lensq_temp = geometry.distanceSquared(waitingRays[j].p1, s_point_temp);
+            if (s_point && geometry.distanceSquared(s_point_temp, s_point) < minShotLength_squared && (objTypes[scene.objs[i].type].supportSurfaceMerging || objTypes[s_obj.type].supportSurfaceMerging))
             {
               // The ray is shot on two objects at the same time, and at least one of them supports surface merging
 
               if (objTypes[s_obj.type].supportSurfaceMerging)
               {
-                if (objTypes[objs[i].type].supportSurfaceMerging)
+                if (objTypes[scene.objs[i].type].supportSurfaceMerging)
                 {
                   // Both of them supports surface merging (e.g. two glasses with one common edge
-                  surfaceMerging_objs[surfaceMerging_objs.length] = objs[i];
+                  surfaceMerging_objs[surfaceMerging_objs.length] = scene.objs[i];
                 }
                 else
                 {
                   // Only the first shot object supports surface merging
                   // Set the object to be shot to be the one not supporting surface merging (e.g. if one surface of a glass coincides with a blocker, then only block the ray)
-                  s_obj = objs[i];
+                  s_obj = scene.objs[i];
                   s_obj_index = i;
                   s_point = s_point_temp;
                   s_lensq = s_lensq_temp;
@@ -333,7 +305,7 @@ function shootWaitingRays() {
             }
             else if (s_lensq_temp < s_lensq && s_lensq_temp > minShotLength_squared)
             {
-              s_obj = objs[i]; // Update the object to be shot
+              s_obj = scene.objs[i]; // Update the object to be shot
               s_obj_index = i;
               s_point = s_point_temp;
               s_lensq = s_lensq_temp;
@@ -343,7 +315,7 @@ function shootWaitingRays() {
           }
         }
       }
-      if (colorMode) {
+      if (scene.colorMode) {
         var color = wavelengthToColor(waitingRays[j].wavelength, (waitingRays[j].brightness_s + waitingRays[j].brightness_p), true);
       } else {
         ctxLight.globalAlpha = alpha0 * (waitingRays[j].brightness_s + waitingRays[j].brightness_p);
@@ -351,31 +323,31 @@ function shootWaitingRays() {
       // If not shot on any object
       if (s_lensq == Infinity)
       {
-        if (mode == 'light' || mode == 'extended_light')
+        if (scene.mode == 'light' || scene.mode == 'extended_light')
         {
-          if (colorMode) {
-            canvasPainter.draw(waitingRays[j], color); // Draw the ray
+          if (scene.colorMode) {
+            canvasRenderer.drawRay(waitingRays[j], color); // Draw the ray
           } else {
-            canvasPainter.draw(waitingRays[j], 'rgb(255,255,128)'); // Draw the ray
+            canvasRenderer.drawRay(waitingRays[j], 'rgb(255,255,128)'); // Draw the ray
           }
         }
-        if (mode == 'extended_light' && !waitingRays[j].isNew)
+        if (scene.mode == 'extended_light' && !waitingRays[j].isNew)
         {
-          if (colorMode) {
+          if (scene.colorMode) {
             ctxLight.setLineDash([2, 2]);
-            canvasPainter.draw(graphs.ray(waitingRays[j].p1, graphs.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), color); // Draw the extension of the ray
+            canvasRenderer.drawRay(geometry.line(waitingRays[j].p1, geometry.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), color); // Draw the extension of the ray
             ctxLight.setLineDash([]);
           } else {
-            canvasPainter.draw(graphs.ray(waitingRays[j].p1, graphs.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), 'rgb(255,128,0)'); // Draw the extension of the ray
+            canvasRenderer.drawRay(geometry.line(waitingRays[j].p1, geometry.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), 'rgb(255,128,0)'); // Draw the extension of the ray
           }
         }
 
-        if (mode == 'observer')
+        if (scene.mode == 'observer')
         {
-          observed_point = graphs.intersection_line_circle(waitingRays[j], observer)[2];
+          observed_point = geometry.lineCircleIntersections(waitingRays[j], scene.observer)[2];
           if (observed_point)
           {
-            if (graphs.intersection_is_on_ray(observed_point, waitingRays[j]))
+            if (geometry.intersectionIsOnRay(observed_point, waitingRays[j]))
             {
               observed = true;
             }
@@ -385,59 +357,59 @@ function shootWaitingRays() {
       else
       {
         // Here the ray will be shot on s_obj at s_point after traveling for s_len
-        if (mode == 'light' || mode == 'extended_light')
+        if (scene.mode == 'light' || scene.mode == 'extended_light')
         {
-          if (colorMode) {
-            canvasPainter.draw(graphs.segment(waitingRays[j].p1, s_point), color); // Draw the ray
+          if (scene.colorMode) {
+            canvasRenderer.drawSegment(geometry.line(waitingRays[j].p1, s_point), color); // Draw the ray
           } else {
-            canvasPainter.draw(graphs.segment(waitingRays[j].p1, s_point), 'rgb(255,255,128)'); // Draw the ray
+            canvasRenderer.drawSegment(geometry.line(waitingRays[j].p1, s_point), 'rgb(255,255,128)'); // Draw the ray
           }
         }
-        if (mode == 'extended_light' && !waitingRays[j].isNew)
+        if (scene.mode == 'extended_light' && !waitingRays[j].isNew)
         {
-          if (colorMode) {
+          if (scene.colorMode) {
             ctxLight.setLineDash([2, 2]);
-            canvasPainter.draw(graphs.ray(waitingRays[j].p1, graphs.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), color); // Draw the backward extension of the ray
+            canvasRenderer.drawRay(geometry.line(waitingRays[j].p1, geometry.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), color); // Draw the backward extension of the ray
             ctxLight.setLineDash([1, 5]);
-            canvasPainter.draw(graphs.ray(s_point, graphs.point(s_point.x * 2 - waitingRays[j].p1.x, s_point.y * 2 - waitingRays[j].p1.y)), color); // Draw the forward extension of the ray
+            canvasRenderer.drawRay(geometry.line(s_point, geometry.point(s_point.x * 2 - waitingRays[j].p1.x, s_point.y * 2 - waitingRays[j].p1.y)), color); // Draw the forward extension of the ray
             ctxLight.setLineDash([]);
           } else {
-            canvasPainter.draw(graphs.ray(waitingRays[j].p1, graphs.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), 'rgb(255,128,0)'); // Draw the backward extension of the ray
-            canvasPainter.draw(graphs.ray(s_point, graphs.point(s_point.x * 2 - waitingRays[j].p1.x, s_point.y * 2 - waitingRays[j].p1.y)), 'rgb(80,80,80)'); // Draw the forward extension of the ray
+            canvasRenderer.drawRay(geometry.line(waitingRays[j].p1, geometry.point(waitingRays[j].p1.x * 2 - waitingRays[j].p2.x, waitingRays[j].p1.y * 2 - waitingRays[j].p2.y)), 'rgb(255,128,0)'); // Draw the backward extension of the ray
+            canvasRenderer.drawRay(geometry.line(s_point, geometry.point(s_point.x * 2 - waitingRays[j].p1.x, s_point.y * 2 - waitingRays[j].p1.y)), 'rgb(80,80,80)'); // Draw the forward extension of the ray
           }
 
         }
 
-        if (mode == 'observer')
+        if (scene.mode == 'observer')
         {
-          observed_point = graphs.intersection_line_circle(waitingRays[j], observer)[2];
+          observed_point = geometry.lineCircleIntersections(waitingRays[j], scene.observer)[2];
 
           if (observed_point)
           {
 
-            if (graphs.intersection_is_on_segment(observed_point, graphs.segment(waitingRays[j].p1, s_point)))
+            if (geometry.intersectionIsOnSegment(observed_point, geometry.line(waitingRays[j].p1, s_point)))
             {
               observed = true;
             }
           }
         }
       }
-      if (mode == 'observer' && last_ray)
+      if (scene.mode == 'observer' && last_ray)
       {
         if (!waitingRays[j].gap)
         {
-          observed_intersection = graphs.intersection_2line(waitingRays[j], last_ray); // The intersection of the observed rays
+          observed_intersection = geometry.linesIntersection(waitingRays[j], last_ray); // The intersection of the observed rays
 
           if (observed)
           {
-            if (last_intersection && graphs.length_squared(last_intersection, observed_intersection) < 25)
+            if (last_intersection && geometry.distanceSquared(last_intersection, observed_intersection) < 25)
             {
               // If the intersections are near each others
-              if (graphs.intersection_is_on_ray(observed_intersection, graphs.ray(observed_point, waitingRays[j].p1)) && graphs.length_squared(observed_point, waitingRays[j].p1) > 1e-5)
+              if (geometry.intersectionIsOnRay(observed_intersection, geometry.line(observed_point, waitingRays[j].p1)) && geometry.distanceSquared(observed_point, waitingRays[j].p1) > 1e-5)
               {
 
 
-                if (colorMode) {
+                if (scene.colorMode) {
                   var color = wavelengthToColor(waitingRays[j].wavelength, (waitingRays[j].brightness_s + waitingRays[j].brightness_p) * 0.5, true);
                 } else {
                   ctxLight.globalAlpha = alpha0 * ((waitingRays[j].brightness_s + waitingRays[j].brightness_p) + (last_ray.brightness_s + last_ray.brightness_p)) * 0.5;
@@ -453,38 +425,38 @@ function shootWaitingRays() {
                 if (rpd < 0)
                 {
                   // Virtual image
-                  if (colorMode) {
+                  if (scene.colorMode) {
                     ctxLight.fillStyle = color;
                     ctxLight.fillRect(observed_intersection.x - 1.5, observed_intersection.y - 1.5, 3, 3);
                   } else {
-                    canvasPainter.draw(observed_intersection, 'rgb(255,128,0)'); // Draw the image
+                    canvasRenderer.drawPoint(observed_intersection, 'rgb(255,128,0)'); // Draw the image
                   }
                 }
                 else if (rpd < s_lensq)
                 {
                   // Real image
-                  if (colorMode) {
-                    canvasPainter.draw(observed_intersection, color); // Draw the image
+                  if (scene.colorMode) {
+                    canvasRenderer.drawPoint(observed_intersection, color); // Draw the image
                   } else {
-                    canvasPainter.draw(observed_intersection, 'rgb(255,255,128)'); // Draw the image
+                    canvasRenderer.drawPoint(observed_intersection, 'rgb(255,255,128)'); // Draw the image
                   }
                 }
-                  if (colorMode) {
+                  if (scene.colorMode) {
                     ctxLight.setLineDash([1, 2]);
-                    canvasPainter.draw(graphs.segment(observed_point, observed_intersection), color); // Draw the observed ray
+                    canvasRenderer.drawSegment(geometry.line(observed_point, observed_intersection), color); // Draw the observed ray
                     ctxLight.setLineDash([]);
                   } else {
-                    canvasPainter.draw(graphs.segment(observed_point, observed_intersection), 'rgb(0,0,255)'); // Draw the observed ray
+                    canvasRenderer.drawSegment(geometry.line(observed_point, observed_intersection), 'rgb(0,0,255)'); // Draw the observed ray
                   }
               }
               else
               {
-                if (colorMode) {
+                if (scene.colorMode) {
                   ctxLight.setLineDash([1, 2]);
-                  canvasPainter.draw(graphs.ray(observed_point, waitingRays[j].p1), color); // Draw the observed ray
+                  canvasRenderer.drawRay(geometry.line(observed_point, waitingRays[j].p1), color); // Draw the observed ray
                   ctxLight.setLineDash([]);
                 } else {
-                  canvasPainter.draw(graphs.ray(observed_point, waitingRays[j].p1), 'rgb(0,0,255)'); // Draw the observed ray
+                  canvasRenderer.drawRay(geometry.line(observed_point, waitingRays[j].p1), 'rgb(0,0,255)'); // Draw the observed ray
                 }
               }
             }
@@ -492,12 +464,12 @@ function shootWaitingRays() {
             {
               if (last_intersection)
               {
-                if (colorMode) {
+                if (scene.colorMode) {
                   ctxLight.setLineDash([1, 2]);
-                  canvasPainter.draw(graphs.ray(observed_point, waitingRays[j].p1), color); // Draw the observed ray
+                  canvasRenderer.drawRay(geometry.line(observed_point, waitingRays[j].p1), color); // Draw the observed ray
                   ctxLight.setLineDash([]);
                 } else {
-                  canvasPainter.draw(graphs.ray(observed_point, waitingRays[j].p1), 'rgb(0,0,255)'); // Draw the observed ray
+                  canvasRenderer.drawRay(geometry.line(observed_point, waitingRays[j].p1), 'rgb(0,0,255)'); // Draw the observed ray
                 }
               }
             }
@@ -510,15 +482,15 @@ function shootWaitingRays() {
         }
       }
 
-      if (mode == 'images' && last_ray)
+      if (scene.mode == 'images' && last_ray)
       {
         if (!waitingRays[j].gap)
         {
 
-          observed_intersection = graphs.intersection_2line(waitingRays[j], last_ray);
-          if (last_intersection && graphs.length_squared(last_intersection, observed_intersection) < 25)
+          observed_intersection = geometry.linesIntersection(waitingRays[j], last_ray);
+          if (last_intersection && geometry.distanceSquared(last_intersection, observed_intersection) < 25)
           {
-            if (colorMode) {
+            if (scene.colorMode) {
               var color = wavelengthToColor(waitingRays[j].wavelength, (waitingRays[j].brightness_s + waitingRays[j].brightness_p) * 0.5, true);
             } else {
               ctxLight.globalAlpha = alpha0 * ((waitingRays[j].brightness_s + waitingRays[j].brightness_p) + (last_ray.brightness_s + last_ray.brightness_p)) * 0.5;
@@ -536,30 +508,30 @@ function shootWaitingRays() {
             if (rpd < 0)
             {
               // Virtual image
-              if (colorMode) {
+              if (scene.colorMode) {
                 ctxLight.fillStyle = color;
                 ctxLight.fillRect(observed_intersection.x - 1.5, observed_intersection.y - 1.5, 3, 3);
               } else {
-                canvasPainter.draw(observed_intersection, 'rgb(255,128,0)'); // Draw the image
+                canvasRenderer.drawPoint(observed_intersection, 'rgb(255,128,0)'); // Draw the image
               }
             }
             else if (rpd < s_lensq)
             {
               // Real image
-              if (colorMode) {
-                canvasPainter.draw(observed_intersection, color); // Draw the image
+              if (scene.colorMode) {
+                canvasRenderer.drawPoint(observed_intersection, color); // Draw the image
               } else {
-                canvasPainter.draw(observed_intersection, 'rgb(255,255,128)'); // Draw the image
+                canvasRenderer.drawPoint(observed_intersection, 'rgb(255,255,128)'); // Draw the image
               }
             }
             else
             {
               // Virtual object
-              if (colorMode) {
+              if (scene.colorMode) {
                 ctxLight.fillStyle = color;
                 ctxLight.fillRect(observed_intersection.x - 0.5, observed_intersection.y - 0.5, 1, 1);
               } else {
-                canvasPainter.draw(observed_intersection, 'rgb(80,80,80)');
+                canvasRenderer.drawPoint(observed_intersection, 'rgb(80,80,80)');
               }
             }
           }
@@ -578,7 +550,18 @@ function shootWaitingRays() {
       last_s_obj_index = s_obj_index;
       if (s_obj)
       {
-        objTypes[s_obj.type].shot(s_obj, waitingRays[j], j, s_point, surfaceMerging_objs);
+        const ret = objTypes[s_obj.type].onRayIncident(s_obj, waitingRays[j], j, s_point, surfaceMerging_objs);
+        if (ret) {
+          if (ret.isAbsorbed) {
+            waitingRays[j] = null;
+          }
+          if (ret.newRays) {
+            waitingRays.push(...ret.newRays);
+          }
+          if (ret.truncation) {
+            totalTruncation += ret.truncation;
+          }
+        }
       }
       else
       {
@@ -586,7 +569,7 @@ function shootWaitingRays() {
       }
 
       shotRayCount = shotRayCount + 1;
-      if (waitingRays[j] && waitingRays[j].exist)
+      if (waitingRays[j])
       {
         leftRayCount = leftRayCount + 1;
       }
@@ -594,7 +577,7 @@ function shootWaitingRays() {
   }
 
   //}
-  if (colorMode && ctxLight.constructor != C2S) {
+  if (scene.colorMode && ctxLight.constructor != C2S) {
     // Inverse transformation of the color adjustment made in wavelengthToColor.
     // This is to avoid the color satiation problem when using the 'lighter' composition.
     // Currently not supported when exporting to SVG.
@@ -630,22 +613,22 @@ function shootWaitingRays() {
     ctxLight.setTransform(1,0,0,1,0,0);
     ctxLight.clearRect(0, 0, ctxLight.canvas.width, ctxLight.canvas.height);
     ctxLight.drawImage(virtualCanvas, 0, 0);
-    ctx.setTransform(scale*dpr,0,0,scale*dpr,origin.x*dpr, origin.y*dpr);
+    ctx.setTransform(scene.scale*dpr,0,0,scene.scale*dpr,scene.origin.x*dpr, scene.origin.y*dpr);
   }
   ctxLight.globalAlpha = 1.0;
   
   if (forceStop)
   {
-    document.getElementById('status').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation.toFixed(3) + '<br>' + getMsg("time_elapsed") + (new Date() - drawBeginTime) + '<br>' + getMsg("force_stopped");
+    document.getElementById('simulatorStatus').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation.toFixed(3) + '<br>' + getMsg("time_elapsed") + (new Date() - drawBeginTime) + '<br>' + getMsg("force_stopped");
     forceStop = false;
   }
   else if (hasExceededTime)
   {
-    //document.getElementById('status').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation;
+    //document.getElementById('simulatorStatus').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation;
   }
   else
   {
-    document.getElementById('status').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation.toFixed(3) + '<br>' + getMsg("time_elapsed") + (new Date() - drawBeginTime);
+    document.getElementById('simulatorStatus').innerHTML = getMsg("ray_count") + shotRayCount + '<br>' + getMsg("total_truncation") + totalTruncation.toFixed(3) + '<br>' + getMsg("time_elapsed") + (new Date() - drawBeginTime);
   }
   document.getElementById('forceStop').style.display = 'none';
   //ctx.stroke();
@@ -660,29 +643,26 @@ function shootWaitingRays() {
 
 
 //Optical Filter Settings
-function dichroicSettings(obj, elem){
-  if (colorMode) {
-    createBooleanAttr(getMsg('filter'), obj.isDichroic, function(obj, value) {
+function dichroicSettings(obj, objBar){
+  if (scene.colorMode) {
+    objBar.createBoolean(getMsg('filter'), obj.isDichroic, function(obj, value) {
       obj.isDichroic = value;
       obj.wavelength = obj.wavelength || GREEN_WAVELENGTH;
       obj.isDichroicFilter = obj.isDichroicFilter || false;
       obj.bandwidth = obj.bandwidth || 10
-      if (obj == objs[selectedObj]) {
-        selectObj(selectedObj);
-      }
-    }, elem);
+    }, null, true);
     if (obj.isDichroic) {
-      createBooleanAttr(getMsg('invert'), obj.isDichroicFilter, function(obj, value) {
+      objBar.createBoolean(getMsg('invert'), obj.isDichroicFilter, function(obj, value) {
         if(obj.isDichroic){
           obj.isDichroicFilter = value;
         }
-      }, elem);
-      createNumberAttr(getMsg('wavelength'), UV_WAVELENGTH, INFRARED_WAVELENGTH, 1, obj.wavelength || GREEN_WAVELENGTH, function(obj, value) { 
+      });
+      objBar.createNumber(getMsg('wavelength'), UV_WAVELENGTH, INFRARED_WAVELENGTH, 1, obj.wavelength || GREEN_WAVELENGTH, function(obj, value) { 
         obj.wavelength = value;
-      }, elem);
-      createNumberAttr("± " + getMsg('bandwidth'), 0, (INFRARED_WAVELENGTH - UV_WAVELENGTH) , 1, obj.bandwidth || 10, function(obj, value) { 
+      });
+      objBar.createNumber("± " + getMsg('bandwidth'), 0, (INFRARED_WAVELENGTH - UV_WAVELENGTH) , 1, obj.bandwidth || 10, function(obj, value) { 
         obj.bandwidth = value;
-      }, elem);
+      });
     }
   }
 }
@@ -690,9 +670,9 @@ function dichroicSettings(obj, elem){
 //Optical filter wavelength interaction check
 //Checks to see if the wavelength of the ray interacts
 function wavelengthInteraction(obj, ray){
-var dichroicEnabled = colorMode && obj.isDichroic && obj.wavelength;
-var rayHueMatchesMirror =  Math.abs(obj.wavelength - ray.wavelength) <= (obj.bandwidth || 0);
-return !dichroicEnabled || (rayHueMatchesMirror != obj.isDichroicFilter);
+  var dichroicEnabled = scene.colorMode && obj.isDichroic && obj.wavelength;
+  var rayHueMatchesMirror =  Math.abs(obj.wavelength - ray.wavelength) <= (obj.bandwidth || 0);
+  return !dichroicEnabled || (rayHueMatchesMirror != obj.isDichroicFilter);
 }
 
 

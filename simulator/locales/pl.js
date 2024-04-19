@@ -105,6 +105,10 @@ locales["pl"] = {
   "toolname_blackcircle": {
     "message": "Przesłona kołowa"
   },
+  "toolname_diffractiongrating": {
+    "incomplete": true,
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "toolname_ruler": {
     "message": "Linijka"
   },
@@ -238,6 +242,10 @@ locales["pl"] = {
   "tool_blackcircle": {
     "message": "Przesłona kołowa"
   },
+  "tool_diffractiongrating": {
+    "incomplete": true,
+    "message": "Diffraction Grating<sup>Beta</sup>"
+  },
   "tool_ruler": {
     "message": "Linijka"
   },
@@ -359,6 +367,18 @@ locales["pl"] = {
   },
   "emissionangle": {
     "message": "Kąt emisji (°)"
+  },
+  "mirrored": {
+    "incomplete": true,
+    "message": "Mirrored"
+  },
+  "lines/mm": {
+    "incomplete": true,
+    "message": "Lines/mm"
+  },
+  "slit_ratio": {
+    "incomplete": true,
+    "message": "Slit width / line spacing"
   },
   "symmetric": {
     "message": "Symetryczna"
@@ -506,6 +526,14 @@ locales["pl"] = {
   },
   "beam_warning": {
     "message": "⚠️ Wykrywanie obrazu może nie działać w przypadku wiązek rozbieżnych/losowych."
+  },
+  "image_detection_warning": {
+    "incomplete": true,
+    "message": "⚠️ This tool does not support image detection."
+  },
+  "non_color_mode_warning": {
+    "incomplete": true,
+    "message": "⚠️ This tool only works when \"Simulate Color\" is on."
   },
   "brightness_note_popover": {
     "message": "<p>Efektywne tylko wtedy, gdy 'Gęstość promieni' jest wystarczająco wysoka.</p><p>Aby kontrolować liczbę emitowanych promieni, dostosuj ogólny suwak 'Gęstość promieni'.</p>"
@@ -657,6 +685,10 @@ locales["pl"] = {
   "tool_blackcircle_popover": {
     "message": "Przeszkoda - okrąg - pochłaniająca padające promienie. (Przeciągnij lub kliknij, aby utworzyć.)"
   },
+  "tool_diffractiongrating_popover": {
+    "incomplete": true,
+    "message": "A diffraction grating that splits light at an angle depending on wavelength. Warning: The intensities of diffracted rays may not be accurate. (Drag or click to create.)"
+  },
   "tool_ruler_popover": {
     "message": "Linijka odmierzająca odległość od punktu zero (pierwsze kliknięcie) do innego punktu (drugie kliknięcie). Wyskalowana w pikselach. (Przeciągnij lub kliknij, aby utworzyć.)"
   },
@@ -709,7 +741,8 @@ locales["pl"] = {
     "message": "Wielkość widoku w procentach."
   },
   "help_popover": {
-    "message": "<b>Ograniczone przeciąganie</b><p>Podczas przeciągania obiektu przytrzymaj klawisz Shift, aby ograniczyć do poziomego/pionowego; przytrzymaj Ctrl, aby powielić obiekt. Podczas tworzenia obiektu w kształcie linii lub przeciągania jego punktów końcowych przytrzymaj klawisz Shift, aby zablokować kąt lub przeskakiwać między 0°, 45°, 90°; przytrzymaj klawisz Ctrl, aby obrócić/skalować wokół jego środka.</p><b>Grupuj, obracaj i skaluj obiekty</b><p> Przytrzymaj klawisz Ctrl, kliknij kilka punktów kontrolnych (np. punkty końcowe), a następnie kliknij puste miejsce, aby zgrupować te punkty i utworzyć uchwyt. Przeciągnij uchwyt (lub naciśnij klawisze strzałek), aby przesunąć grupę; Shift+przeciągnij, aby ograniczyć do poziomego/pionowego ruchu; Ctrl+przeciągnij, aby obrócić, Ctrl+Shift+przeciągnij, aby skalować. Przeciągnij \"+\", aby ustawić środek obrotu/skalowania. Kliknij uchwyt i naciśnij klawisze Ctrl+D, aby powielić grupę; naciśnij Usuń, aby rozgrupować. </p><b>Bezpośrednia edycja współrzędnych</b><p>Kliknij dwukrotnie lub kliknij prawym przyciskiem myszy punkt kontrolny (np. punkt końcowy) obiektu, edytuj współrzędne (x,y) w pikselach, a następnie naciśnij klawisz Enter.</p><b>Skróty klawiaturowe</b><p>Gdy obiekt jest zaznaczony (przez kliknięcie go), naciskaj klawisze strzałek, aby się poruszać; Ctrl+D, aby powielić; Klawisz Delete, aby usunąć.</p>"
+    "incomplete": true,
+    "message": "<b>Ograniczone przeciąganie</b><p>Podczas przeciągania obiektu przytrzymaj klawisz Shift, aby ograniczyć do poziomego/pionowego; przytrzymaj Ctrl, aby powielić obiekt. Podczas tworzenia obiektu w kształcie linii lub przeciągania jego punktów końcowych przytrzymaj klawisz Shift, aby zablokować kąt lub przeskakiwać między 0°, 45°, 90°; przytrzymaj klawisz Ctrl, aby obrócić/skalować wokół jego środka.</p><b>Grupuj, obracaj i skaluj obiekty</b><p> Przytrzymaj klawisz Ctrl, kliknij kilka punktów kontrolnych (np. punkty końcowe), a następnie kliknij puste miejsce, aby zgrupować te punkty i utworzyć uchwyt. Przeciągnij uchwyt (lub naciśnij klawisze strzałek), aby przesunąć grupę; Shift+przeciągnij, aby ograniczyć do poziomego/pionowego ruchu; Ctrl+przeciągnij, aby obrócić, Ctrl+Shift+przeciągnij, aby skalować. Przeciągnij \"+\", aby ustawić środek obrotu/skalowania. Kliknij uchwyt i naciśnij klawisze Ctrl+D, aby powielić grupę; naciśnij Usuń, aby rozgrupować. </p><b>Bezpośrednia edycja współrzędnych</b><p>Kliknij dwukrotnie lub kliknij prawym przyciskiem myszy punkt kontrolny (np. punkt końcowy) obiektu, edytuj współrzędne (x,y) w pikselach, a następnie naciśnij klawisz Enter.</p><b>Skróty klawiaturowe</b><p>Gdy obiekt jest zaznaczony (przez kliknięcie go), naciskaj klawisze strzałek, aby się poruszać; Ctrl+D, aby powielić; Klawisz Delete, aby usunąć.</p><b>Contact Us</b><p>The suggested way is to go to <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/discussions\">Discussions</a> or <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/issues\">Issues</a> on GitHub. If you do not use GitHub, you can also email us at <a href=\"mailto:ray-optics@phydemo.app\">ray-optics@phydemo.app</a> (please use English). </p><p>Direct contributions are also welcome (see <a target=\"_blank\" href=\"https://github.com/ricktu288/ray-optics/blob/master/CONTRIBUTING.md\">the contribution guide</a>).</p>"
   },
   "show_help_popups": {
     "message": "Pokaż okienka pomocy"
@@ -753,5 +786,9 @@ locales["pl"] = {
   "force_stopped": {
     "incomplete": true,
     "message": "Force stopped."
+  },
+  "mouse_coordinates": {
+    "incomplete": true,
+    "message": "Mouse coordinates: "
   }
 }
